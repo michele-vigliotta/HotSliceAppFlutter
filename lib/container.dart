@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:hot_slice_app/preferiti.dart';
 import 'colors.dart';
 import 'home.dart';
-//import 'pages/favorites_page.dart';
+import 'offerte.dart';
+import 'preferiti.dart';
+import 'ordini.dart';
+import 'carrello.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -20,10 +23,10 @@ class _MyAppState extends State<MyApp> {
   // Lista di widget per ciascuna pagina
   static const List<Widget> _pages = <Widget>[
     Home(),
-    Center(child: Text('Offerte', style: TextStyle(fontSize: 24, color: AppColors.primaryColor))),
-    Preferiti(), // Pagina Preferiti
-    Center(child: Text('Carrello', style: TextStyle(fontSize: 24, color: AppColors.primaryColor))),
-    Center(child: Text('Impostazioni', style: TextStyle(fontSize: 24, color: AppColors.primaryColor))),
+    Offerte(),
+    Preferiti(),
+    Carrello(),
+    Ordini(),
   ];
 
   // Metodo per aggiornare l'indice dell'icona selezionata
@@ -56,24 +59,24 @@ class _MyAppState extends State<MyApp> {
           onTap: _onItemTapped, // Callback per il tap
           items: const [
             BottomNavigationBarItem(
-              label: 'Home', // Questa label sarà nascosta
+              label: 'Home', 
               icon: Icon(Icons.home),
             ),
             BottomNavigationBarItem(
-              label: 'Offerte', // Questa label sarà nascosta
+              label: 'Offerte', 
               icon: Icon(Icons.celebration),
             ),
             BottomNavigationBarItem(
-              label: 'Preferiti', // Questa label sarà nascosta
+              label: 'Preferiti', 
               icon: Icon(Icons.favorite),
             ),
             BottomNavigationBarItem(
-              label: 'Carrello', // Questa label sarà nascosta
-              icon: Icon(Icons.shopping_cart),
+              label: 'Carrello', 
+              icon: Icon(Icons.add_shopping_cart),
             ),
             BottomNavigationBarItem(
-              label: 'Impostazioni', // Questa label sarà nascosta
-              icon: Icon(Icons.settings),
+              label: 'Ordini', 
+              icon: Icon(Icons.access_time),
             ),
           ],
         ),
