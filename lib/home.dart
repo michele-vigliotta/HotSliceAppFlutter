@@ -100,7 +100,7 @@ class _HomeState extends State<Home> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedButtonIndex == 0 ? AppColors.secondaryColor : AppColors.lightYellow,
+                      backgroundColor: _selectedButtonIndex == 0 ? AppColors.secondaryColor : AppColors.LightYellow,
                       shadowColor: Colors.transparent, // Disabilita l'ombra
                       foregroundColor: Colors.black,
                     ),
@@ -116,7 +116,7 @@ class _HomeState extends State<Home> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedButtonIndex == 1 ? AppColors.secondaryColor : AppColors.lightYellow,
+                      backgroundColor: _selectedButtonIndex == 1 ? AppColors.secondaryColor : AppColors.LightYellow,
                       shadowColor: Colors.transparent, // Disabilita l'ombra
                       foregroundColor: Colors.black,
                     ),
@@ -132,7 +132,7 @@ class _HomeState extends State<Home> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedButtonIndex == 2 ? AppColors.secondaryColor : AppColors.lightYellow,
+                      backgroundColor: _selectedButtonIndex == 2 ? AppColors.secondaryColor : AppColors.LightYellow,
                       shadowColor: Colors.transparent, // Disabilita l'ombra
                       foregroundColor: Colors.black,
                     ),
