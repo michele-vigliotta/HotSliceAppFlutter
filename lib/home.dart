@@ -1,21 +1,46 @@
 import 'package:flutter/material.dart';
 import 'colors.dart';
+import 'pizza_list.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  const Home({Key? key}) : super(key: key);
 
   @override
   _HomeState createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
-  // Indice del pulsante selezionato, inizialmente impostato su Pizza (indice 0)
   int _selectedButtonIndex = 0;
+
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _searchFocusNode.addListener(() {
+      if (!_searchFocusNode.hasFocus) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final Map<int, Widget> _pages = {
+      0: const PizzaList(),
+    };
+
     return Scaffold(
-      backgroundColor: Colors.white, // Colore di sfondo bianco
+      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -32,10 +57,10 @@ class _HomeState extends State<Home> {
                   ),
                 ),
                 CircleAvatar(
-                  backgroundColor: AppColors.secondaryColor, // Sfondo colorato
-                  radius: 24, // Raggio del cerchio, regola come desideri
+                  backgroundColor: AppColors.secondaryColor,
+                  radius: 24,
                   child: IconButton(
-                    icon: const Icon(Icons.logout, color: Colors.black), // Icona nera
+                    icon: const Icon(Icons.logout, color: Colors.black),
                     onPressed: () {
                       // Logica per il logout
                     },
@@ -44,40 +69,63 @@ class _HomeState extends State<Home> {
               ],
             ),
             const SizedBox(height: 16),
-            // Search View con stile personalizzato
             Container(
               decoration: BoxDecoration(
-                color: Colors.white, // Sfondo bianco
-                borderRadius: BorderRadius.circular(8.0), // Angoli arrotondati
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.0),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1), // Ombra nera con opacità
-                    blurRadius: 4.0, // Raggio di sfocatura
-                    offset: const Offset(0, 2), // Posizione dell'ombra
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4.0,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
               child: TextField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                cursorColor: Colors.black,
+                style: const TextStyle(color: Colors.black),
                 decoration: InputDecoration(
                   hintText: 'Find your food ...',
-                  hintStyle: TextStyle(color: Colors.grey[500]), // Testo suggerimento
+                  hintStyle: TextStyle(color: Colors.grey[500]),
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(1.0), // Angoli arrotondati
-                    borderSide: BorderSide(color: Colors.grey[300]!), // Bordo grigio
+                    borderRadius: BorderRadius.circular(1.0),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(1.0),
-                    borderSide: BorderSide(color: Colors.grey[300]!), // Bordo grigio
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(1.0),
-                    borderSide: BorderSide(color: Colors.grey[300]!), // Bordo grigio più scuro quando è attivo
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey[600]), // Icona di ricerca
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0), // Padding del contenuto
+                  prefixIcon:  Icon(Icons.search, color: Colors.grey[600]),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.black),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {});
+                          },
+                        )
+                      : null,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
                 ),
+                onChanged: (text) {
+                  setState(() {});
+                },
+                onTap: () {
+                  setState(() {});
+                },
+                onEditingComplete: () {
+                  // Chiamato quando l'utente preme "Fatto" sulla tastiera
+                  _searchFocusNode.unfocus(); // Rimuove il focus dal TextField
+                  setState(() {});
+                },
               ),
             ),
             const SizedBox(height: 16),
@@ -100,11 +148,11 @@ class _HomeState extends State<Home> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedButtonIndex == 0 ? AppColors.secondaryColor : AppColors.LightYellow,
-                      shadowColor: Colors.transparent, // Disabilita l'ombra
+                      backgroundColor: _selectedButtonIndex == 0 ? AppColors.secondaryColor : AppColors.lightYellow,
+                      shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
-                    child: const Text('Pizza'),
+                    child: const Text('Pizze'),
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -116,8 +164,8 @@ class _HomeState extends State<Home> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedButtonIndex == 1 ? AppColors.secondaryColor : AppColors.LightYellow,
-                      shadowColor: Colors.transparent, // Disabilita l'ombra
+                      backgroundColor: _selectedButtonIndex == 1 ? AppColors.secondaryColor : AppColors.lightYellow,
+                      shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
                     child: const Text('Bibite'),
@@ -132,8 +180,8 @@ class _HomeState extends State<Home> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedButtonIndex == 2 ? AppColors.secondaryColor : AppColors.LightYellow,
-                      shadowColor: Colors.transparent, // Disabilita l'ombra
+                      backgroundColor: _selectedButtonIndex == 2 ? AppColors.secondaryColor : AppColors.lightYellow,
+                      shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
                     child: const Text('Dolci'),
@@ -143,12 +191,7 @@ class _HomeState extends State<Home> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: Container(
-                color: Colors.grey[200], // Colore del contenitore delle categorie
-                child: const Center(
-                  child: Text('Placeholder per la lista di cibi'),
-                ),
-              ),
+              child: _pages[_selectedButtonIndex]!,
             ),
           ],
         ),
