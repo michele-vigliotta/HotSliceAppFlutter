@@ -13,23 +13,10 @@ class _HomeState extends State<Home> {
   int _selectedButtonIndex = 0;
 
   final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-
-    _searchFocusNode.addListener(() {
-      if (!_searchFocusNode.hasFocus) {
-        setState(() {});
-      }
-    });
-  }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -83,7 +70,6 @@ class _HomeState extends State<Home> {
               ),
               child: TextField(
                 controller: _searchController,
-                focusNode: _searchFocusNode,
                 cursorColor: Colors.black,
                 style: const TextStyle(color: Colors.black),
                 decoration: InputDecoration(
@@ -103,7 +89,7 @@ class _HomeState extends State<Home> {
                     borderRadius: BorderRadius.circular(1.0),
                     borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
-                  prefixIcon:  Icon(Icons.search, color: Colors.grey[600]),
+                  prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, color: Colors.black),
@@ -119,11 +105,6 @@ class _HomeState extends State<Home> {
                   setState(() {});
                 },
                 onTap: () {
-                  setState(() {});
-                },
-                onEditingComplete: () {
-                  // Chiamato quando l'utente preme "Fatto" sulla tastiera
-                  _searchFocusNode.unfocus(); // Rimuove il focus dal TextField
                   setState(() {});
                 },
               ),
@@ -149,7 +130,7 @@ class _HomeState extends State<Home> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedButtonIndex == 0 ? AppColors.secondaryColor : AppColors.lightYellow,
-                      shadowColor: Colors.transparent, // Disabilita l'ombra
+                      shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
                     child: const Text('Pizze'),
@@ -165,7 +146,7 @@ class _HomeState extends State<Home> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedButtonIndex == 1 ? AppColors.secondaryColor : AppColors.lightYellow,
-                      shadowColor: Colors.transparent, // Disabilita l'ombra
+                      shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
                     child: const Text('Bibite'),
@@ -181,7 +162,7 @@ class _HomeState extends State<Home> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedButtonIndex == 2 ? AppColors.secondaryColor : AppColors.lightYellow,
-                      shadowColor: Colors.transparent, // Disabilita l'ombra
+                      shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
                     child: const Text('Dolci'),
