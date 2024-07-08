@@ -149,7 +149,7 @@ class _HomeState extends State<Home> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedButtonIndex == 0 ? AppColors.secondaryColor : AppColors.lightYellow,
-                      shadowColor: Colors.transparent,
+                      shadowColor: Colors.transparent, // Disabilita l'ombra
                       foregroundColor: Colors.black,
                     ),
                     child: const Text('Pizze'),
@@ -165,7 +165,7 @@ class _HomeState extends State<Home> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedButtonIndex == 1 ? AppColors.secondaryColor : AppColors.lightYellow,
-                      shadowColor: Colors.transparent,
+                      shadowColor: Colors.transparent, // Disabilita l'ombra
                       foregroundColor: Colors.black,
                     ),
                     child: const Text('Bibite'),
@@ -181,7 +181,7 @@ class _HomeState extends State<Home> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedButtonIndex == 2 ? AppColors.secondaryColor : AppColors.lightYellow,
-                      shadowColor: Colors.transparent,
+                      shadowColor: Colors.transparent, // Disabilita l'ombra
                       foregroundColor: Colors.black,
                     ),
                     child: const Text('Dolci'),
