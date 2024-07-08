@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'colors.dart';
 import 'home.dart';
 import 'offerte.dart';
@@ -6,7 +7,9 @@ import 'preferiti.dart';
 import 'ordini.dart';
 import 'carrello.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // Inizializza Firebase
   runApp(const MyApp());
 }
 
@@ -21,11 +24,11 @@ class _MyAppState extends State<MyApp> {
   int _selectedIndex = 0; // Indice dell'icona selezionata
 
   // Lista di widget per ciascuna pagina
-  static const List<Widget> _pages = <Widget>[
-    Home(),
-    Offerte(),
-    Preferiti(),
-    Carrello(),
+  static final List<Widget> _pages = <Widget>[
+    const Home(),
+    const Offerte(),
+    const Preferiti(),
+    const Carrello(),
     Ordini(),
   ];
 
