@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'colors.dart';
 import 'generic_list.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -18,6 +19,12 @@ class _HomeState extends State<Home> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _logout() async {
+    await FirebaseAuth.instance.signOut();
+    // Naviga alla pagina di login dopo il logout
+    Navigator.of(context).pushNamed('/login'); // Sostituisci con la tua route per la pagina di login
   }
 
   void _clearSearchField() {
@@ -51,9 +58,7 @@ class _HomeState extends State<Home> {
                   radius: 24,
                   child: IconButton(
                     icon: const Icon(Icons.logout, color: Colors.black),
-                    onPressed: () {
-                      // Logica per il logout
-                    },
+                    onPressed: _logout, // Chiama la funzione di logout al click
                   ),
                 ),
               ],
@@ -92,7 +97,7 @@ class _HomeState extends State<Home> {
                     borderRadius: BorderRadius.circular(1.0),
                     borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, color: Colors.black),
