@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'colors.dart';
-import 'pizza_list.dart';
+import 'generic_list.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Home extends StatefulWidget {
@@ -14,23 +14,10 @@ class _HomeState extends State<Home> {
   int _selectedButtonIndex = 0;
 
   final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-
-    _searchFocusNode.addListener(() {
-      if (!_searchFocusNode.hasFocus) {
-        setState(() {});
-      }
-    });
-  }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -40,11 +27,14 @@ class _HomeState extends State<Home> {
     Navigator.of(context).pushNamed('/login'); // Sostituisci con la tua route per la pagina di login
   }
 
+  void _clearSearchField() {
+    _searchController.clear();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Map<int, Widget> _pages = {
-      0: const PizzaList(),
-    };
+    final List<String> _collections = ['pizze', 'bibite', 'dolci'];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -88,7 +78,6 @@ class _HomeState extends State<Home> {
               ),
               child: TextField(
                 controller: _searchController,
-                focusNode: _searchFocusNode,
                 cursorColor: Colors.black,
                 style: const TextStyle(color: Colors.black),
                 decoration: InputDecoration(
@@ -112,10 +101,7 @@ class _HomeState extends State<Home> {
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, color: Colors.black),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {});
-                          },
+                          onPressed: _clearSearchField,
                         )
                       : null,
                   contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
@@ -124,11 +110,6 @@ class _HomeState extends State<Home> {
                   setState(() {});
                 },
                 onTap: () {
-                  setState(() {});
-                },
-                onEditingComplete: () {
-                  // Chiamato quando l'utente preme "Fatto" sulla tastiera
-                  _searchFocusNode.unfocus(); // Rimuove il focus dal TextField
                   setState(() {});
                 },
               ),
@@ -151,10 +132,11 @@ class _HomeState extends State<Home> {
                       setState(() {
                         _selectedButtonIndex = 0;
                       });
+                      _clearSearchField();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedButtonIndex == 0 ? AppColors.secondaryColor : AppColors.lightYellow,
-                      shadowColor: Colors.transparent, // Disabilita l'ombra
+                      shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
                     child: const Text('Pizze'),
@@ -167,10 +149,11 @@ class _HomeState extends State<Home> {
                       setState(() {
                         _selectedButtonIndex = 1;
                       });
+                      _clearSearchField();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedButtonIndex == 1 ? AppColors.secondaryColor : AppColors.lightYellow,
-                      shadowColor: Colors.transparent, // Disabilita l'ombra
+                      shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
                     child: const Text('Bibite'),
@@ -183,10 +166,11 @@ class _HomeState extends State<Home> {
                       setState(() {
                         _selectedButtonIndex = 2;
                       });
+                      _clearSearchField();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedButtonIndex == 2 ? AppColors.secondaryColor : AppColors.lightYellow,
-                      shadowColor: Colors.transparent, // Disabilita l'ombra
+                      shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
                     child: const Text('Dolci'),
@@ -196,7 +180,10 @@ class _HomeState extends State<Home> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: _pages[_selectedButtonIndex]!,
+              child: GenericList(
+                collectionName: _collections[_selectedButtonIndex],
+                searchQuery: _searchController.text,
+              ),
             ),
           ],
         ),
