@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'carrello_model.dart';
+import 'carrello_provider.dart';
 import 'colors.dart';
 
 class DettagliProdotto extends StatelessWidget {
@@ -18,12 +21,12 @@ class DettagliProdotto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(0.0), 
-          child: AppBar(
-            backgroundColor: AppColors.primaryColor,
-          ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(0.0),
+        child: AppBar(
+          backgroundColor: AppColors.primaryColor,
         ),
+      ),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -45,7 +48,8 @@ class DettagliProdotto extends StatelessWidget {
                     children: [
                       Center(
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.primaryColor),
                         ),
                       ),
                       Center(
@@ -55,7 +59,8 @@ class DettagliProdotto extends StatelessWidget {
                           width: double.infinity,
                           fit: BoxFit.fitWidth,
                           errorBuilder: (context, error, stackTrace) {
-                            return Icon(Icons.error, color: AppColors.primaryColor);
+                            return Icon(Icons.error,
+                                color: AppColors.primaryColor);
                           },
                         ),
                       ),
@@ -83,6 +88,16 @@ class DettagliProdotto extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () {
                           // Implement minus button functionality
+                          Provider.of<CarrelloProvider>(context, listen: false)
+                              .removeFromCarrello(
+                            CarrelloModel(
+                              name: 'Nuovo Elemento',
+                              price: 10.0,
+                              quantity: 1,
+                              image: "",
+                              description: "",
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.secondaryColor,
@@ -135,7 +150,8 @@ class DettagliProdotto extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.secondaryColor,
-                      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 16, horizontal: 32),
                     ),
                     child: const Text(
                       'Aggiungi al carrello',

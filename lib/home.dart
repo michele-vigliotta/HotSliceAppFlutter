@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'carrello_model.dart';
 import 'colors.dart';
 import 'generic_list.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+ 
+  
+  const Home({
+    Key? key,
+    r
+  }) : super(key: key);
+  
 
   @override
   _HomeState createState() => _HomeState();
@@ -183,6 +190,7 @@ class _HomeState extends State<Home> {
               child: GenericList(
                 collectionName: _collections[_selectedButtonIndex],
                 searchQuery: _searchController.text,
+                
               ),
             ),
           ],
