@@ -1,36 +1,77 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'colors.dart';
 import 'dettagli_prodotto.dart';
 
+class GenericList extends StatelessWidget {
+  final String collectionName;
+  final String searchQuery;
 
-class PizzaList extends StatelessWidget {
-  const PizzaList({Key? key}) : super(key: key);
-   
+  const GenericList({
+    Key? key,
+    required this.collectionName,
+    required this.searchQuery,
+  }) : super(key: key);
+
+  void _showToast(BuildContext context) {
+    String message;
+    switch (collectionName) {
+      case 'pizze':
+        message = 'Pizza non presente nel menù';
+        break;
+      case 'bibite':
+        message = 'Bibita non presente nel menù';
+        break;
+      case 'dolci':
+        message = 'Dolce non presente nel menù';
+        break;
+      default:
+        message = 'Prodotto non presente nel menù';
+    }
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.grey[800],
+      textColor: Colors.white,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('pizze').snapshots(),
+      stream: FirebaseFirestore.instance.collection(collectionName).snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text('No pizzas available'));
+          _showToast(context);
+          return Center(child: Text('$collectionName non presente nel menù'));
         }
 
-        final pizzas = snapshot.data!.docs;
+        final items = snapshot.data!.docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final nome = data['nome']?.toString().toLowerCase() ?? '';
+          return nome.contains(searchQuery.toLowerCase());
+        }).toList();
+
+        if (items.isEmpty) {
+          _showToast(context);
+          return const Center(child: Text('Nessun prodotto corrisponde alla ricerca'));
+        }
 
         return ListView.builder(
-          itemCount: pizzas.length,
+          itemCount: items.length,
           itemBuilder: (context, index) {
-            final pizza = pizzas[index].data() as Map<String, dynamic>;
-            return PizzaItem(
-              nome: pizza['nome'] ?? 'Unnamed Pizza',
-              prezzo: pizza['prezzo']?.toDouble() ?? 0.0,
-              imageUrl: pizza['foto'] ?? 'https://example.com/default.png',
-              descrizione: pizza['descrizione'] ?? 'No description available',
+            final item = items[index].data() as Map<String, dynamic>;
+            return GenericItem(
+              nome: item['nome'] ?? 'Unnamed Item',
+              prezzo: item['prezzo']?.toDouble() ?? 0.0,
+              imageUrl: item['foto'] ?? 'https://example.com/default.png',
+              descrizione: item['descrizione'] ?? 'No description available',
             );
           },
         );
@@ -39,13 +80,13 @@ class PizzaList extends StatelessWidget {
   }
 }
 
-class PizzaItem extends StatelessWidget {
+class GenericItem extends StatelessWidget {
   final String nome;
   final double prezzo;
   final String imageUrl;
   final String descrizione;
 
-  const PizzaItem({
+  const GenericItem({
     Key? key,
     required this.nome,
     required this.prezzo,

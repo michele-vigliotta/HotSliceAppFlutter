@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'colors.dart';
-import 'pizza_list.dart';
+import 'generic_list.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -20,11 +20,14 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
+  void _clearSearchField() {
+    _searchController.clear();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Map<int, Widget> _pages = {
-      0: const PizzaList(),
-    };
+    final List<String> _collections = ['pizze', 'bibite', 'dolci'];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -93,10 +96,7 @@ class _HomeState extends State<Home> {
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, color: Colors.black),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {});
-                          },
+                          onPressed: _clearSearchField,
                         )
                       : null,
                   contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
@@ -127,6 +127,7 @@ class _HomeState extends State<Home> {
                       setState(() {
                         _selectedButtonIndex = 0;
                       });
+                      _clearSearchField();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedButtonIndex == 0 ? AppColors.secondaryColor : AppColors.lightYellow,
@@ -143,6 +144,7 @@ class _HomeState extends State<Home> {
                       setState(() {
                         _selectedButtonIndex = 1;
                       });
+                      _clearSearchField();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedButtonIndex == 1 ? AppColors.secondaryColor : AppColors.lightYellow,
@@ -159,6 +161,7 @@ class _HomeState extends State<Home> {
                       setState(() {
                         _selectedButtonIndex = 2;
                       });
+                      _clearSearchField();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedButtonIndex == 2 ? AppColors.secondaryColor : AppColors.lightYellow,
@@ -172,7 +175,10 @@ class _HomeState extends State<Home> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: _pages[_selectedButtonIndex]!,
+              child: GenericList(
+                collectionName: _collections[_selectedButtonIndex],
+                searchQuery: _searchController.text,
+              ),
             ),
           ],
         ),
