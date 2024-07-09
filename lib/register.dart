@@ -1,46 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hot_slice_app/register.dart';
+import 'package:hot_slice_app/colors.dart';
+import 'package:hot_slice_app/login.dart';
 
-class LoginPage extends StatefulWidget {
+class RegisterPage extends StatefulWidget {
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _RegisterPageState createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  bool _rememberMe = false;
   bool _isLoading = false;
 
-  void _login() async {
+  void _register() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
       if (userCredential.user != null) {
-        // Login successful
-        if (_rememberMe) {
-          // Implementa la tua logica per memorizzare lo stato di "Accedi automaticamente"
-        }
-
-        Navigator.of(context).pushReplacementNamed(
-            '/container'); // Naviga alla MainPage dopo il login
-      } else {
-        // Login fallito
+        // Registration successful
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Email e/o password errati'),
+            content: Text('Registrazione avvenuta con successo.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+  
+        Navigator.of(context).pushReplacementNamed(
+            '/login'); // Naviga alla MainPage dopo la registrazione
+      } else {
+        // Registrazione fallita
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registrazione fallita. Riprova.'),
             duration: Duration(seconds: 3),
           ),
         );
@@ -49,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
       print('Errore durante il login: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Errore durante il login. Riprova più tardi.'),
+          content: Text('Errore durante la registrazione. Riprova più tardi.'),
           duration: Duration(seconds: 3),
         ),
       );
@@ -74,7 +77,7 @@ class _LoginPageState extends State<LoginPage> {
                 'HotSlice',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.red,
+                  color: AppColors.primaryColor,
                   fontSize: 30.0,
                   fontWeight: FontWeight.bold,
                 ),
@@ -126,34 +129,15 @@ class _LoginPageState extends State<LoginPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 10.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Checkbox(
-                          value: _rememberMe,
-                          onChanged: (value) {
-                            setState(() {
-                              _rememberMe = value!;
-                            });
-                          },
-                          activeColor: Colors.red,
-                        ),
-                        const Text(
-                          'Accedi automaticamente',
-                          style: TextStyle(fontSize: 16.0),
-                        ),
-                      ],
-                    ),
                     const SizedBox(height: 24.0),
                     ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          _login();
+                          _register();
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red, // Colore del pulsante
+                        backgroundColor: AppColors.primaryColor, // Colore del pulsante
                         padding: const EdgeInsets.symmetric(vertical: 16.0),
                       ),
                       child: _isLoading
@@ -161,19 +145,19 @@ class _LoginPageState extends State<LoginPage> {
                               valueColor:
                                   AlwaysStoppedAnimation<Color>(Colors.white),
                             )
-                          : const Text('Login'),
+                          : const Text('Registrati'),
                     ),
                     const SizedBox(height: 24.0),
                     GestureDetector(
                       onTap: () {
                         Navigator.of(context).pushNamed(
-                            '/register'); // Naviga alla pagina di registrazione
+                            '/login'); // Naviga alla pagina di registrazione
                       },
                       child: const Text(
-                        'Non sei ancora registrato? Registrati ora!',
+                        'Hai già un account? Accedi ora!',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.red,
+                          color: AppColors.primaryColor,
                           fontSize: 18.0,
                         ),
                       ),
