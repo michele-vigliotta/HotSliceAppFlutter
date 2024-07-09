@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hot_slice_app/carrello_model.dart';
 import 'colors.dart';
 import 'home.dart';
 import 'offerte.dart';
@@ -16,13 +15,6 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0; // Indice dell'icona selezionata
-
-  
-
-
-  
-
-  
 
   // Metodo per aggiornare l'indice dell'icona selezionata
   void _onItemTapped(int index) {

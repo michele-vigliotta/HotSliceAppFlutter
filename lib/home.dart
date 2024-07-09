@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'carrello_model.dart';
 import 'colors.dart';
 import 'generic_list.dart';
 import 'package:firebase_auth/firebase_auth.dart';
