@@ -79,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 20.0),
               Image.asset(
-                'assets/pizzalogin.png', // Assicurati di avere l'immagine nella cartella 'assets'
+                'images/pizzalogin.png', // Assicurati di avere l'immagine nella cartella 'images'
                 height: 186.0,
                 width: 234.0,
                 fit: BoxFit.contain,
