@@ -39,11 +39,11 @@ class _OrdiniState extends State<Ordini> {
             isStaff = true;
             ordiniList = _filterOrdini('Servizio al Tavolo');
           });
-        } else {
-          ordiniList = _loadOrdini(currentUser.uid);
         }
       } else {
-        ordiniList = _loadOrdini(currentUser.uid);
+        setState(() {
+          ordiniList = _loadOrdini(currentUser.uid);
+        });
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Devi essere loggato per visualizzare gli ordini")));
