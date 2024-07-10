@@ -19,7 +19,7 @@ class DettagliProdotto extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _DettagliProdottoState createState() => _DettagliProdottoState();  
+  _DettagliProdottoState createState() => _DettagliProdottoState();
 }
 
 class _DettagliProdottoState extends State<DettagliProdotto> {
@@ -43,11 +43,9 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
       _quantita = (_quantita + x).clamp(0, 100);
       _controller.text = _quantita.toString();
     });
-
-  
   }
 
-Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(0.0),
@@ -116,7 +114,7 @@ Widget build(BuildContext context) {
                       ElevatedButton(
                         onPressed: () {
                           // Implement minus button functionality
-                          if (_quantita > 0){
+                          if (_quantita > 0) {
                             _updateQuantita(-1);
                           }
                         },
@@ -146,7 +144,7 @@ Widget build(BuildContext context) {
                       ElevatedButton(
                         onPressed: () {
                           // Implement plus button functionality
-                           _updateQuantita(1);
+                          _updateQuantita(1);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.secondaryColor,
@@ -170,17 +168,17 @@ Widget build(BuildContext context) {
                     onPressed: () {
                       // Implement add to cart functionality
                       Provider.of<CarrelloProvider>(context, listen: false)
-                              .addToCarrello(
-                            CarrelloModel(
-                              name: '${widget.nome}',
-                              price: widget.prezzo,
-                              quantity: _quantita,
-                              image: "",
-                              description: "${widget.descrizione}",
-                            ),
-                          );
-                      _updateQuantita(- _quantita);
-                      
+                          .addToCarrello(
+                        CarrelloModel(
+                          name: '${widget.nome}',
+                          price: widget.prezzo,
+                          quantity: _quantita,
+                          image: "",
+                          description: "${widget.descrizione}",
+                        ),
+                        quantity: _quantita,
+                      );
+                      _updateQuantita(-_quantita);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.secondaryColor,
@@ -219,7 +217,4 @@ Widget build(BuildContext context) {
       ),
     );
   }
-
-
 }
-

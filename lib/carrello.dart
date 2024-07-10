@@ -38,7 +38,8 @@ class Carrello extends StatelessWidget {
                           children: [
                             const Center(
                               child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppColors.primaryColor),
                               ),
                             ),
                             Center(
@@ -48,11 +49,14 @@ class Carrello extends StatelessWidget {
                                       width: 80,
                                       height: 80,
                                       fit: BoxFit.fitHeight,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Icon(Icons.error, color: AppColors.primaryColor);
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Icon(Icons.error,
+                                            color: AppColors.primaryColor);
                                       },
                                     )
-                                  : Icon(Icons.error, color: AppColors.primaryColor),
+                                  : Icon(Icons.error,
+                                      color: AppColors.primaryColor),
                             ),
                           ],
                         ),
@@ -82,8 +86,19 @@ class Carrello extends StatelessWidget {
                           ],
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.remove),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.secondaryColor,
+                          shape: CircleBorder(),
+                          padding: EdgeInsets.all(12),
+                        ),
+                        child: const Text(
+                          '-',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 14.0,
+                          ),
+                        ),
                         onPressed: () {
                           carrelloProvider.removeFromCarrello(item);
                         },
@@ -93,10 +108,22 @@ class Carrello extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 16.0,
+                          color: AppColors.myGrey,
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.add),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.secondaryColor,
+                          shape: CircleBorder(),
+                          padding: EdgeInsets.all(12),
+                        ),
+                        child: const Text(
+                          '+',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 14.0,
+                          ),
+                        ),
                         onPressed: () {
                           carrelloProvider.addToCarrello(item);
                         },
@@ -109,21 +136,7 @@ class Carrello extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Esempio di aggiunta di un nuovo elemento al carrello
-          Provider.of<CarrelloProvider>(context, listen: false).addToCarrello(
-            CarrelloModel(
-              name: 'Nuovo Elemento',
-              price: 10.0,
-              quantity: 1,
-              image: "",
-              description: "",
-            ),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
+    
     );
   }
 }
