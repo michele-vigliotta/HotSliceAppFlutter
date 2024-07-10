@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'colors.dart';
+import 'app_colors.dart';
 import 'generic_list.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -12,7 +12,6 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   int _selectedButtonIndex = 0;
-
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -23,7 +22,6 @@ class _HomeState extends State<Home> {
 
   void _logout() async {
     await FirebaseAuth.instance.signOut();
-    // Naviga alla pagina di login dopo il logout
     Navigator.of(context).pushNamed('/login'); // Sostituisci con la tua route per la pagina di login
   }
 
@@ -50,7 +48,7 @@ class _HomeState extends State<Home> {
                   'HUNGRY NOW?',
                   style: TextStyle(
                     fontSize: 24,
-                    color: Color.fromARGB(150, 2, 2, 2),
+                    color: AppColors.darkGrey,
                   ),
                 ),
                 CircleAvatar(
@@ -119,7 +117,7 @@ class _HomeState extends State<Home> {
               'Categories',
               style: TextStyle(
                 fontSize: 24,
-                color: Color.fromARGB(150, 2, 2, 2),
+                color: AppColors.darkGrey,
               ),
             ),
             const SizedBox(height: 12),

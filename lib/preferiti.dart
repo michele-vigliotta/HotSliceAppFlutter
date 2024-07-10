@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'colors.dart';
+import 'app_colors.dart';
 
 class Preferiti extends StatelessWidget {
   const Preferiti({super.key});
