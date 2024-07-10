@@ -10,10 +10,10 @@ class GenericList extends StatelessWidget {
   final String searchQuery;
 
   const GenericList({
-    Key? key,
+    super.key,
     required this.collectionName,
     required this.searchQuery,
-  }) : super(key: key);
+  });
 
   void _showToast(BuildContext context, String message) {
     Fluttertoast.showToast(
@@ -107,12 +107,12 @@ class GenericItem extends StatelessWidget {
   final String descrizione;
 
   const GenericItem({
-    Key? key,
+    super.key,
     required this.nome,
     required this.prezzo,
     required this.imageUrl,
     required this.descrizione,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +142,7 @@ class GenericItem extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: Row(
             children: [
-              Container(
+              SizedBox(
                 width: 120.0,
                 height: 100.0,
                 child: ClipRRect(

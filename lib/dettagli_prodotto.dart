@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'carrello_model.dart';
+import 'carrello_provider.dart';
+import 'package:provider/provider.dart';
 
 class DettagliProdotto extends StatefulWidget {
   final String nome;
@@ -88,7 +91,8 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                         alignment: Alignment.center,
                         children: [
                           CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primaryColor),
                           ),
                           Image.network(
                             widget.imageUrl,
@@ -96,7 +100,8 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                             width: double.infinity,
                             fit: BoxFit.contain,
                             errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.error, color: AppColors.primaryColor);
+                              return Icon(Icons.error,
+                                  color: AppColors.primaryColor);
                             },
                           ),
                         ],
@@ -155,11 +160,13 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                           controller: _controller,
                           textAlign: TextAlign.center,
                           decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(vertical: 15),
+                            contentPadding:
+                                EdgeInsets.symmetric(vertical: 15),
                             border: InputBorder.none,
                           ),
                           keyboardType: TextInputType.number,
-                          style: const TextStyle(color: Colors.black, fontSize: 16.0),
+                          style: const TextStyle(
+                              color: Colors.black, fontSize: 16.0),
                           onChanged: _aggiornaQuantita,
                         ),
                       ),
@@ -180,10 +187,23 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                 ElevatedButton(
                   onPressed: () {
                     // Implement add to cart functionality
+                    Provider.of<CarrelloProvider>(context, listen: false)
+                        .addToCarrello(
+                      CarrelloModel(
+                        name: widget.nome,
+                        price: widget.prezzo,
+                        quantity: _quantita,
+                        image: widget.imageUrl,
+                        description: widget.descrizione,
+                      ),
+                      quantity: _quantita,
+                    );
+                    _aggiornaQuantita('0');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.secondaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 32),
                   ),
                   child: const Text(
                     'Aggiungi al carrello',
