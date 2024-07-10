@@ -6,10 +6,10 @@ class CarrelloModel {
   int quantity;
 
   CarrelloModel({
-    required this.name,
-    required this.image,
-    required this.description,
-    required this.price,
+    this.name = '',
+    this.image = '',
+    this.description = '',
+    this.price = 0,
     this.quantity = 0, // Quantità predefinita a 0
   });
 

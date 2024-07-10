@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:hot_slice_app/ordine_model.dart';
+import 'package:intl/intl.dart';
 import 'carrello_model.dart';
 
 class CarrelloProvider extends ChangeNotifier{
@@ -22,7 +25,7 @@ class CarrelloProvider extends ChangeNotifier{
   }
 
   // Metodo per aggiungere un elemento al carrello
-  void removeFromCarrello(CarrelloModel item, ) {
+  void removeFromCarrello(CarrelloModel item) {
       //Se é giá presente diminuisco la quantitá
       int index = _listaCarrello.indexWhere((element) => element.name == item.name);
       if (index != -1) {
@@ -35,5 +38,47 @@ class CarrelloProvider extends ChangeNotifier{
         _listaCarrello.remove(item);
       }
     notifyListeners();
+  }
+
+  double calcolaTotale() {
+    double totale = 0;
+    for (var element in _listaCarrello) {
+      totale += (element.price * element.quantity);
+    }
+    return totale;
+  }
+
+  void creaOrdine(OrdineModel nuovoOrdine) async{
+
+    DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    String data = formatter.format(DateTime.now());
+    String descrizione = '';
+    //CarrelloModel prodotto = CarrelloModel();
+    for (CarrelloModel prodotto in _listaCarrello){
+      descrizione += "Nome: ${prodotto.name}, Quantità: ${prodotto.quantity};\n";
+    }
+    
+    try{
+      Map<String, dynamic> documento = {
+        'data': data,
+        'descrizione': descrizione,
+        'nome': nuovoOrdine.nome,
+        'ora': nuovoOrdine.ora,
+        'stato':"in corso",
+        'tavolo': nuovoOrdine.tavolo,
+        'telefono': nuovoOrdine.telefono,
+        'tipo': nuovoOrdine.tipo,
+        'totale': calcolaTotale().toStringAsFixed(2),
+      
+      };
+
+      CollectionReference ordini = FirebaseFirestore.instance.collection('ordini');
+      await ordini.add(documento);
+      _listaCarrello.clear();
+      notifyListeners();
+
+    }catch (e){
+      print('Errore durante la creazione dell\'ordine: $e');
+    }
   }
 }
