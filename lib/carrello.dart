@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hot_slice_app/crea_ordine_dialog.dart';
 import 'package:provider/provider.dart';
 import 'carrello_model.dart';
@@ -163,12 +164,22 @@ class Carrello extends StatelessWidget {
                   foregroundColor: Colors.black,
                 ),
                 onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext) {
-                      return const CreaOrdineDialog();
-                    },
-                  );
+                  if (carrelloProvider.listaCarrello.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Aggiungere prodotti al carrello prima di continuare'),
+                        duration: Duration(seconds: 1, milliseconds: 250),
+                      ),
+                    );
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext) {
+                        return const CreaOrdineDialog();
+                      },
+                    );
+                  }
                 },
                 child: const Text("Procedi con l'ordine!",
                     style: TextStyle(
