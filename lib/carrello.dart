@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'carrello_model.dart';
 import 'carrello_provider.dart';
+import 'colors.dart';
 
 class Carrello extends StatelessWidget {
   const Carrello({Key? key}) : super(key: key);
@@ -20,14 +21,88 @@ class Carrello extends StatelessWidget {
             itemCount: listaCarrello.length,
             itemBuilder: (context, index) {
               final item = listaCarrello[index];
-              return ListTile(
-                title: Text(item.name),
-                subtitle: Text('Prezzo: ${item.price} - Quantità: ${item.quantity}'),
-                trailing: IconButton(
-                  icon: Icon(Icons.remove),
-                  onPressed: () {
-                    carrelloProvider.removeFromCarrello(item);
-                  },
+              return Card(
+                elevation: 4.0,
+                margin: const EdgeInsets.all(8.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        child: Stack(
+                          children: [
+                            const Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                              ),
+                            ),
+                            Center(
+                              child: item.image.isNotEmpty
+                                  ? Image.network(
+                                      item.image,
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.fitHeight,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Icon(Icons.error, color: AppColors.primaryColor);
+                                      },
+                                    )
+                                  : Icon(Icons.error, color: AppColors.primaryColor),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8.0),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              item.name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.myGrey,
+                              ),
+                            ),
+                            Text(
+                              '€${item.price.toStringAsFixed(2)}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 14.0,
+                                color: AppColors.myGrey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.remove),
+                        onPressed: () {
+                          carrelloProvider.removeFromCarrello(item);
+                        },
+                      ),
+                      Text(
+                        item.quantity.toString(),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16.0,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          carrelloProvider.addToCarrello(item);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -47,7 +122,7 @@ class Carrello extends StatelessWidget {
             ),
           );
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

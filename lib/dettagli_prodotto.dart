@@ -4,7 +4,7 @@ import 'carrello_model.dart';
 import 'carrello_provider.dart';
 import 'colors.dart';
 
-class DettagliProdotto extends StatelessWidget {
+class DettagliProdotto extends StatefulWidget {
   final String nome;
   final double prezzo;
   final String imageUrl;
@@ -19,7 +19,35 @@ class DettagliProdotto extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  _DettagliProdottoState createState() => _DettagliProdottoState();  
+}
+
+class _DettagliProdottoState extends State<DettagliProdotto> {
+  int _quantita = 0;
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: _quantita.toString());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _updateQuantita(int x) {
+    setState(() {
+      _quantita = (_quantita + x).clamp(0, 100);
+      _controller.text = _quantita.toString();
+    });
+
+  
+  }
+
+Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(0.0),
@@ -35,7 +63,7 @@ class DettagliProdotto extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    nome,
+                    widget.nome,
                     style: const TextStyle(
                       fontSize: 24.0,
                       fontWeight: FontWeight.bold,
@@ -54,7 +82,7 @@ class DettagliProdotto extends StatelessWidget {
                       ),
                       Center(
                         child: Image.network(
-                          imageUrl,
+                          widget.imageUrl,
                           height: 200.0,
                           width: double.infinity,
                           fit: BoxFit.fitWidth,
@@ -68,7 +96,7 @@ class DettagliProdotto extends StatelessWidget {
                   ),
                   const SizedBox(height: 30.0),
                   Text(
-                    '€${prezzo.toStringAsFixed(2)}',
+                    '€${widget.prezzo.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 20.0,
                       color: AppColors.secondaryColor,
@@ -76,7 +104,7 @@ class DettagliProdotto extends StatelessWidget {
                   ),
                   const SizedBox(height: 16.0),
                   Text(
-                    descrizione,
+                    widget.descrizione,
                     style: const TextStyle(
                       fontSize: 16.0,
                     ),
@@ -88,16 +116,9 @@ class DettagliProdotto extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () {
                           // Implement minus button functionality
-                          Provider.of<CarrelloProvider>(context, listen: false)
-                              .removeFromCarrello(
-                            CarrelloModel(
-                              name: 'Nuovo Elemento',
-                              price: 10.0,
-                              quantity: 1,
-                              image: "",
-                              description: "",
-                            ),
-                          );
+                          if (_quantita > 0){
+                            _updateQuantita(-1);
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.secondaryColor,
@@ -118,13 +139,14 @@ class DettagliProdotto extends StatelessWidget {
                             ),
                           ),
                           keyboardType: TextInputType.number,
-                          controller: TextEditingController(text: '0'),
+                          controller: _controller,
                         ),
                       ),
                       const SizedBox(width: 8.0),
                       ElevatedButton(
                         onPressed: () {
                           // Implement plus button functionality
+                           _updateQuantita(1);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.secondaryColor,
@@ -147,6 +169,18 @@ class DettagliProdotto extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () {
                       // Implement add to cart functionality
+                      Provider.of<CarrelloProvider>(context, listen: false)
+                              .addToCarrello(
+                            CarrelloModel(
+                              name: '${widget.nome}',
+                              price: widget.prezzo,
+                              quantity: _quantita,
+                              image: "",
+                              description: "${widget.descrizione}",
+                            ),
+                          );
+                      _updateQuantita(- _quantita);
+                      
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.secondaryColor,
@@ -185,4 +219,7 @@ class DettagliProdotto extends StatelessWidget {
       ),
     );
   }
+
+
 }
+
