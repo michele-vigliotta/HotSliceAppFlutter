@@ -8,12 +8,12 @@ class DettagliProdotto extends StatelessWidget {
   final String descrizione;
 
   const DettagliProdotto({
-    Key? key,
+    super.key,
     required this.nome,
     required this.prezzo,
     required this.imageUrl,
     required this.descrizione,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,7 @@ class DettagliProdotto extends StatelessWidget {
                   const SizedBox(height: 25.0),
                   Stack(
                     children: [
-                      Center(
+                      const Center(
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
                         ),
@@ -55,7 +55,7 @@ class DettagliProdotto extends StatelessWidget {
                           width: double.infinity,
                           fit: BoxFit.fitWidth,
                           errorBuilder: (context, error, stackTrace) {
-                            return Icon(Icons.error, color: AppColors.primaryColor);
+                            return const Icon(Icons.error, color: AppColors.primaryColor);
                           },
                         ),
                       ),
@@ -86,18 +86,18 @@ class DettagliProdotto extends StatelessWidget {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.secondaryColor,
-                          shape: CircleBorder(),
-                          padding: EdgeInsets.all(16),
+                          shape: const CircleBorder(),
+                          padding: const EdgeInsets.all(16),
                         ),
-                        child: Text('-'),
+                        child: const Text('-'),
                       ),
                       const SizedBox(width: 8.0),
-                      Container(
+                      SizedBox(
                         width: 52.0,
                         child: TextField(
                           textAlign: TextAlign.center,
                           decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(vertical: 15),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 15),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8.0),
                             ),
@@ -113,10 +113,10 @@ class DettagliProdotto extends StatelessWidget {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.secondaryColor,
-                          shape: CircleBorder(),
-                          padding: EdgeInsets.all(16),
+                          shape: const CircleBorder(),
+                          padding: const EdgeInsets.all(16),
                         ),
-                        child: Text('+'),
+                        child: const Text('+'),
                       ),
                     ],
                   ),
@@ -126,7 +126,7 @@ class DettagliProdotto extends StatelessWidget {
                     onChanged: (bool? value) {
                       // Implement favorite button functionality
                     },
-                    shape: CircleBorder(),
+                    shape: const CircleBorder(),
                   ),
                   const SizedBox(height: 16.0),
                   ElevatedButton(
@@ -135,7 +135,7 @@ class DettagliProdotto extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.secondaryColor,
-                      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
                     ),
                     child: const Text(
                       'Aggiungi al carrello',
@@ -160,7 +160,7 @@ class DettagliProdotto extends StatelessWidget {
               ),
             ),
           ),
-          Center(
+          const Center(
             child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
             ),

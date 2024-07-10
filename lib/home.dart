@@ -4,7 +4,7 @@ import 'generic_list.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+  const Home({super.key});
 
   @override
   _HomeState createState() => _HomeState();
@@ -34,7 +34,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> _collections = ['pizze', 'bibite', 'dolci'];
+    final List<String> collections = ['pizze', 'bibite', 'dolci'];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -181,7 +181,7 @@ class _HomeState extends State<Home> {
             const SizedBox(height: 16),
             Expanded(
               child: GenericList(
-                collectionName: _collections[_selectedButtonIndex],
+                collectionName: collections[_selectedButtonIndex],
                 searchQuery: _searchController.text,
               ),
             ),

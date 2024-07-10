@@ -5,7 +5,7 @@ import 'dettagli_prodotto.dart';
 
 
 class PizzaList extends StatelessWidget {
-  const PizzaList({Key? key}) : super(key: key);
+  const PizzaList({super.key});
    
   @override
   Widget build(BuildContext context) {
@@ -46,12 +46,12 @@ class PizzaItem extends StatelessWidget {
   final String descrizione;
 
   const PizzaItem({
-    Key? key,
+    super.key,
     required this.nome,
     required this.prezzo,
     required this.imageUrl,
     required this.descrizione,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,13 +81,13 @@ class PizzaItem extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: Row(
             children: [
-              Container(
+              SizedBox(
                 width: 120.0,
                 height: 100.0,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    CircularProgressIndicator(
+                    const CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
                     ),
                     Image.network(
@@ -96,7 +96,7 @@ class PizzaItem extends StatelessWidget {
                       height: 100.0,
                       fit: BoxFit.fitWidth,
                       errorBuilder: (context, error, stackTrace) {
-                        return Container(
+                        return const SizedBox(
                           width: 120.0,
                           height: 100.0,
                           child: Icon(Icons.error, color: AppColors.primaryColor),

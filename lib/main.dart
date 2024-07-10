@@ -7,10 +7,12 @@ import 'package:firebase_core/firebase_core.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // Inizializza Firebase
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -20,16 +22,18 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.red,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: AuthWrapper(),
+      home: const AuthWrapper(),
       routes: {
-        '/login': (context) => LoginPage(),
-        '/container': (context) => MainPage(), // Aggiorna con la tua route per la MainPage
+        '/login': (context) => const LoginPage(),
+        '/container': (context) => const MainPage(), // Aggiorna con la tua route per la MainPage
       },
     );
   }
 }
 
 class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
@@ -37,14 +41,14 @@ class AuthWrapper extends StatelessWidget {
       builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           // Se lo stato dell'utente è in attesa, mostra uno splash screen o uno schermo di caricamento
-          return SplashScreen();
+          return const SplashScreen();
         } else {
           if (snapshot.hasData && snapshot.data != null) {
             // Se l'utente è loggato, naviga alla MainPage
-            return MainPage(); // Sostituisci con la tua widget della MainPage
+            return const MainPage(); // Sostituisci con la tua widget della MainPage
           } else {
             // Se l'utente non è loggato, mostra la pagina di login
-            return LoginPage(); // Sostituisci con la tua widget della pagina di login
+            return const LoginPage(); // Sostituisci con la tua widget della pagina di login
           }
         }
       },
@@ -53,10 +57,12 @@ class AuthWrapper extends StatelessWidget {
 }
 
 class SplashScreen extends StatelessWidget {
+  const SplashScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     // Implementa uno splash screen personalizzato o uno schermo di caricamento qui
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: CircularProgressIndicator(), // Esempio di indicatore di caricamento
       ),

@@ -33,7 +33,7 @@ class Preferiti extends StatelessWidget {
               itemBuilder: (context, index) {
                 return ListTile(
                   title: Text('Articolo preferito $index'),
-                  trailing: Icon(Icons.favorite, color: AppColors.primaryColor),
+                  trailing: const Icon(Icons.favorite, color: AppColors.primaryColor),
                 );
               },
             ),
