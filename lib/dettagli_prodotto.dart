@@ -11,7 +11,7 @@ class DettagliProdotto extends StatefulWidget {
   final String descrizione;
 
   const DettagliProdotto({
-    super.key,
+    Key? key,
     required this.nome,
     required this.prezzo,
     required this.imageUrl,
