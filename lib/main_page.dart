@@ -16,15 +16,6 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0; // Indice dell'icona selezionata
 
-  // Lista di widget per ciascuna pagina
-  static final List<Widget> _pages = <Widget>[
-    const Home(),
-    const Offerte(),
-    const Preferiti(),
-    const Carrello(),
-    Ordini(),
-  ];
-
   // Metodo per aggiornare l'indice dell'icona selezionata
   void _onItemTapped(int index) {
     setState(() {
@@ -34,6 +25,15 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Lista di widget per ciascuna pagina
+  List<Widget> _pages = <Widget>[
+    const Home(),
+    const Offerte(),
+    const Preferiti(),
+    const Carrello(),
+    Ordini(),
+  ];
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(0.0), // Altezza personalizzata della AppBar
