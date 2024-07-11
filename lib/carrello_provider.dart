@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hot_slice_app/ordine_model.dart';
 import 'package:intl/intl.dart';
@@ -48,8 +49,21 @@ class CarrelloProvider extends ChangeNotifier{
     return totale;
   }
 
-  void creaOrdine(OrdineModel nuovoOrdine) async{
+  void getCurrentUserUID() async {
+  User? user = FirebaseAuth.instance.currentUser;
 
+  if (user != null) {
+    String uid = user.uid;
+    print("L'UID dell'utente attualmente loggato è: $uid");
+  } else {
+    print("Nessun utente è attualmente loggato.");
+  }
+}
+
+  void creaOrdine(OrdineModel nuovoOrdine) async{
+    User? user = FirebaseAuth.instance.currentUser;
+    
+    
     DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
     String data = formatter.format(DateTime.now());
     String descrizione = '';
@@ -69,7 +83,7 @@ class CarrelloProvider extends ChangeNotifier{
         'telefono': nuovoOrdine.telefono,
         'tipo': nuovoOrdine.tipo,
         'totale': calcolaTotale().toStringAsFixed(2),
-      
+        'userId': user?.uid,
       };
 
       CollectionReference ordini = FirebaseFirestore.instance.collection('ordini');

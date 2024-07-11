@@ -28,7 +28,7 @@ class _MainPageState extends State<MainPage> {
     // Lista di widget per ciascuna pagina
   List<Widget> _pages = <Widget>[
     const Home(),
-    const Offerte(),
+    Offerte(),
     const Preferiti(),
     const Carrello(),
     Ordini(),
