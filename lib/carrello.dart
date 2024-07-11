@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
 import 'package:hot_slice_app/crea_ordine_dialog.dart';
 import 'package:provider/provider.dart';
 import 'carrello_model.dart';
@@ -176,7 +176,7 @@ class Carrello extends StatelessWidget {
                   } else {
                     showDialog(
                       context: context,
-                      builder: (BuildContext) {
+                      builder: (buildcontext) {
                         return const CreaOrdineDialog();
                       },
                     );

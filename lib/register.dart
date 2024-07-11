@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'app_colors.dart';
 
-
 class RegisterPage extends StatefulWidget {
   @override
   _RegisterPageState createState() => _RegisterPageState();
@@ -13,7 +12,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _passwordFocusNode = FocusNode();
+  final FocusNode _confirmPasswordFocusNode = FocusNode();
 
   bool _isLoading = false;
 
@@ -23,20 +27,21 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
       if (userCredential.user != null) {
-        // Registration successful
+        // Registrazione con successo
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Registrazione avvenuta con successo.'),
             duration: Duration(seconds: 3),
           ),
         );
-  
+
         Navigator.of(context).pushReplacementNamed(
             '/login'); // Naviga alla MainPage dopo la registrazione
       } else {
@@ -48,8 +53,24 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         );
       }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('L\'email è già in uso. Prova con un\'altra email.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore durante la registrazione: ${e.message}'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     } catch (e) {
-      print('Errore durante il login: $e');
+      print('Errore durante la registrazione: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Errore durante la registrazione. Riprova più tardi.'),
@@ -82,31 +103,53 @@ class _RegisterPageState extends State<RegisterPage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 20.0),
+              const SizedBox(height: 80.0),
               Image.asset(
                 'images/pizzalogin.png', // Assicurati di avere l'immagine nella cartella 'images'
                 height: 186.0,
                 width: 234.0,
                 fit: BoxFit.contain,
               ),
-              const SizedBox(height: 20.0),
+              const SizedBox(height: 100.0),
               Form(
                 key: _formKey,
                 child: Column(
                   children: <Widget>[
                     TextFormField(
                       controller: _emailController,
-                      decoration: const InputDecoration(
+                      focusNode: _emailFocusNode,
+                      decoration: InputDecoration(
                         hintText: 'Email',
-                        contentPadding: EdgeInsets.all(16.0),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
+                        contentPadding: const EdgeInsets.all(16.0),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2.0,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2.0,
+                          ),
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(_passwordFocusNode);
+                      },
                       validator: (value) {
+                        String pattern =
+                            r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$';
+                        RegExp regex = RegExp(pattern);
+
                         if (value == null || value.isEmpty) {
                           return 'Inserisci l\'email';
+                        } else if (!regex.hasMatch(value)) {
+                          return 'Inserisci un\'email valida';
                         }
                         return null;
                       },
@@ -114,17 +157,69 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 15.0),
                     TextFormField(
                       controller: _passwordController,
-                      decoration: const InputDecoration(
+                      focusNode: _passwordFocusNode,
+                      decoration: InputDecoration(
                         hintText: 'Password',
-                        contentPadding: EdgeInsets.all(16.0),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
+                        contentPadding: const EdgeInsets.all(16.0),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2.0,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2.0,
+                          ),
                         ),
                       ),
                       obscureText: true,
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(_confirmPasswordFocusNode);
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Inserisci la password';
+                        } else if (value.length < 6) {
+                          return 'La password deve avere alemno 6 caratteri';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 15.0),
+                    TextFormField(
+                      controller: _confirmPasswController,
+                      focusNode: _confirmPasswordFocusNode,
+                      decoration: InputDecoration(
+                        hintText: 'Conferma Password',
+                        contentPadding: const EdgeInsets.all(16.0),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2.0,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2.0,
+                          ),
+                        ),
+                      ),
+                      obscureText: true,
+                      textInputAction: TextInputAction.done,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Inserisci la password';
+                        }
+                        if (value != _passwordController.text) {
+                          return 'Le password inserite non coincidono. Verifica e riprova';
                         }
                         return null;
                       },
@@ -137,15 +232,22 @@ class _RegisterPageState extends State<RegisterPage> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor, // Colore del pulsante
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        backgroundColor:
+                            AppColors.secondaryColor, // Colore del pulsante
+                        fixedSize: Size(150.0, 40.0),
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(
                               valueColor:
                                   AlwaysStoppedAnimation<Color>(Colors.white),
                             )
-                          : const Text('Registrati'),
+                          : const Text(
+                              'Registrati',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 15,
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 24.0),
                     GestureDetector(

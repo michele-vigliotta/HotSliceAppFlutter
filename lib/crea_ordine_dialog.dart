@@ -134,6 +134,7 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
               );
               carrelloProvider.creaOrdine(nuovoOrdine);
               Navigator.of(context).pop();
+              
             }
           },
           child: const Text(
