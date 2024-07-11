@@ -186,7 +186,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                 const SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: () {
-                    // Implement add to cart functionality
+                    // Aggiunge l'articolo al carrello
                     Provider.of<CarrelloProvider>(context, listen: false)
                         .addToCarrello(
                       CarrelloModel(
@@ -199,6 +199,14 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                       quantity: _quantita,
                     );
                     _aggiornaQuantita('0');
+
+                    // Mostra il messaggio "aggiunto al carrello"
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Aggiunto al carrello'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.secondaryColor,
