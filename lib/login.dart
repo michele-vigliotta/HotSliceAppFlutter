@@ -17,6 +17,9 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _passwordFocusNode = FocusNode();
+
   bool _rememberMe = false;
   bool _isLoading = false;
 
@@ -55,12 +58,11 @@ class _LoginPageState extends State<LoginPage> {
         password: _passwordController.text,
       );
 
-      // Login successful
+      // Login avvenuto con successo
       if (userCredential.user != null) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
 
         if (_rememberMe) {
-          
           await prefs.setString('email', _emailController.text.trim());
           await prefs.setString('password', _passwordController.text.trim());
           await prefs.setBool('rememberMe', true);
@@ -70,36 +72,41 @@ class _LoginPageState extends State<LoginPage> {
           await prefs.remove('rememberMe');
         }
 
-        if(mounted){
-
-        Navigator.of(context).pushReplacementNamed(
-            '/container'); // Naviga alla MainPage dopo il login
-        }
-      } else {
         if (mounted) {
-        // Login fallito
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Email e/o password errati'),
-            duration: Duration(seconds: 3),
-          ),
-        );
+          Navigator.of(context).pushReplacementNamed(
+              '/container'); // Naviga alla MainPage dopo il login
         }
       }
-    } catch (e) {
-      print('Errore durante il login: $e');
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'invalid-email':
+          errorMessage = 'L\'indirizzo email non è valido.';
+          break;
+        case 'user-disabled':
+          errorMessage = 'L\'utente con questo indirizzo email è stato disabilitato.';
+          break;
+        case 'user-not-found':
+          errorMessage = 'Nessun utente corrisponde a questo indirizzo email.';
+          break;
+        case 'wrong-password':
+          errorMessage = 'La password è errata.';
+          break;
+        default:
+          errorMessage = 'Errore durante il login. Riprova più tardi.';
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Errore durante il login. Riprova più tardi.'),
+        SnackBar(
+          content: Text(errorMessage),
           duration: Duration(seconds: 3),
         ),
       );
     } finally {
       if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -130,7 +137,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 80),
               Image.asset(
-                'images/pizzalogin.png', 
+                'images/pizzalogin.png',
                 height: 186.0,
                 width: 234.0,
                 fit: BoxFit.contain,
@@ -142,6 +149,7 @@ class _LoginPageState extends State<LoginPage> {
                   children: <Widget>[
                     TextFormField(
                       controller: _emailController,
+                      focusNode: _emailFocusNode,
                       decoration: InputDecoration(
                         hintText: 'Email',
                         contentPadding: const EdgeInsets.all(16.0),
@@ -150,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
                           borderSide: const BorderSide(
                             color: AppColors.primaryColor,
                             width: 2.0,
-                          ), 
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30.0),
@@ -161,9 +169,18 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(_passwordFocusNode);
+                      },
                       validator: (value) {
+                        String pattern =
+                            r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$';
+                        RegExp regex = RegExp(pattern);
                         if (value == null || value.isEmpty) {
                           return 'Inserisci l\'email';
+                        } else if (!regex.hasMatch(value)) {
+                          return 'Inserisci un\'email valida';
                         }
                         return null;
                       },
@@ -171,9 +188,10 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 15.0),
                     TextFormField(
                       controller: _passwordController,
+                      focusNode: _passwordFocusNode,
                       decoration: InputDecoration(
                         hintText: 'Password',
-                        contentPadding: EdgeInsets.all(16.0),
+                        contentPadding: const EdgeInsets.all(16.0),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30.0),
                           borderSide: const BorderSide(
@@ -190,6 +208,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       obscureText: true,
+                      textInputAction: TextInputAction.done,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Inserisci la password';
@@ -228,7 +247,7 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.secondaryColor,
-                        fixedSize: Size(150.0, 40.0),
+                        fixedSize: const Size(150.0, 40.0),
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(
@@ -249,7 +268,7 @@ class _LoginPageState extends State<LoginPage> {
                         Navigator.of(context).pushNamed(
                             '/register'); // Naviga alla pagina di registrazione
                       },
-                      child:  RichText(
+                      child: RichText(
                         text: const TextSpan(
                           children: [
                             TextSpan(
@@ -257,17 +276,16 @@ class _LoginPageState extends State<LoginPage> {
                               style: TextStyle(
                                 color: AppColors.myGrey,
                                 fontSize: 18,
-                              )
+                              ),
                             ),
                             TextSpan(
                               text: ' Registrati ora!',
                               style: TextStyle(
                                 color: AppColors.primaryColor,
                                 fontSize: 18,
-                              )
+                              ),
                             ),
-
-                          ]
+                          ],
                         ),
                       ),
                     ),

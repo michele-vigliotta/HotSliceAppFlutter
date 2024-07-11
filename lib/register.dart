@@ -105,7 +105,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 80.0),
               Image.asset(
-                'images/pizzalogin.png', // Assicurati di avere l'immagine nella cartella 'images'
+                'images/pizzalogin.png', 
                 height: 186.0,
                 width: 234.0,
                 fit: BoxFit.contain,
@@ -255,12 +255,24 @@ class _RegisterPageState extends State<RegisterPage> {
                         Navigator.of(context).pushNamed(
                             '/login'); // Naviga alla pagina di registrazione
                       },
-                      child: const Text(
-                        'Hai già un account? Accedi ora!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: AppColors.primaryColor,
-                          fontSize: 18.0,
+                      child: RichText(
+                        text: const TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Hai giá un account?',
+                              style: TextStyle(
+                                color: AppColors.myGrey,
+                                fontSize: 18,
+                              ),
+                            ),
+                            TextSpan(
+                              text: ' Accedi ora!',
+                              style: TextStyle(
+                                color: AppColors.primaryColor,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
