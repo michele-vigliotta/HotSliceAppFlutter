@@ -28,7 +28,7 @@ class _HomeState extends State<Home> {
 
   void _logout() async {
     await FirebaseAuth.instance.signOut();
-    Navigator.of(context).pushNamed('/login'); // Sostituisci con la tua route per la pagina di login
+    Navigator.of(context).pushNamed('/login');
   }
 
   void _clearSearchField() {
