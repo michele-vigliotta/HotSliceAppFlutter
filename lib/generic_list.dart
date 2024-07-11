@@ -68,7 +68,7 @@ class GenericList extends StatelessWidget {
               future: _getImageUrl(imageName),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return SizedBox(
+                  return const SizedBox(
                     width: 120.0,
                     height: 100.0,
                     child: Center(
@@ -85,127 +85,102 @@ class GenericList extends StatelessWidget {
                 }
 
                 final imageUrl = snapshot.data ?? 'https://example.com/default.png';
-                return GenericItem(
-                  nome: item['nome'] ?? 'Unnamed Item',
-                  prezzo: item['prezzo']?.toDouble() ?? 0.0,
-                  imageUrl: imageUrl,
-                  descrizione: item['descrizione'] ?? 'No description available',
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DettagliProdotto(
+                          nome: item['nome'] ?? 'Unnamed Item',
+                          prezzo: item['prezzo']?.toDouble() ?? 0.0,
+                          imageUrl: imageUrl,
+                          descrizione: item['descrizione'] ?? 'No description available',
+                        ),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    color: Colors.white,
+                    margin: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 6.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      side: BorderSide(color: Colors.grey[300]!, width: 1.0),
+                    ),
+                    elevation: 2.0,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 120.0,
+                            height: 100.0,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10.0),
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  const CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                                  ),
+                                  Image.network(
+                                    imageUrl,
+                                    width: 120.0,
+                                    height: 100.0,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        width: 120.0,
+                                        height: 100.0,
+                                        child: Icon(Icons.error, color: AppColors.primaryColor),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8.0),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        item['nome'] ?? 'Unnamed Item',
+                                        style: const TextStyle(
+                                          fontSize: 20.0,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.secondaryColor,
+                                        ),
+                                        textAlign: TextAlign.start,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      '€${(item['prezzo']?.toDouble() ?? 0.0).toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontSize: 15.0,
+                                      ),
+                                      textAlign: TextAlign.end,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 );
               },
             );
           },
         );
       },
-    );
-  }
-}
-
-class GenericItem extends StatelessWidget {
-  final String nome;
-  final double prezzo;
-  final String imageUrl;
-  final String descrizione;
-
-  const GenericItem({
-    super.key,
-    required this.nome,
-    required this.prezzo,
-    required this.imageUrl,
-    required this.descrizione,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DettagliProdotto(
-              nome: nome,
-              prezzo: prezzo,
-              imageUrl: imageUrl,
-              descrizione: descrizione,
-            ),
-          ),
-        );
-      },
-      child: Card(
-        color: Colors.white,
-        margin: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 6.0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.0),
-          side: BorderSide(color: Colors.grey[300]!, width: 1.0),
-        ),
-        elevation: 2.0,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 120.0,
-                height: 100.0,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10.0),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-                      ),
-                      Image.network(
-                        imageUrl,
-                        width: 120.0,
-                        height: 100.0,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: 120.0,
-                            height: 100.0,
-                            child: Icon(Icons.error, color: AppColors.primaryColor),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            nome,
-                            style: const TextStyle(
-                              fontSize: 20.0,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.secondaryColor,
-                            ),
-                            textAlign: TextAlign.start,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          '€${prezzo.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontSize: 15.0,
-                          ),
-                          textAlign: TextAlign.end,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
