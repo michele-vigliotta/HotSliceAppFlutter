@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hot_slice_app/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'app_colors.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -70,9 +70,13 @@ class _LoginPageState extends State<LoginPage> {
           await prefs.remove('rememberMe');
         }
 
+        if(mounted){
+
         Navigator.of(context).pushReplacementNamed(
             '/container'); // Naviga alla MainPage dopo il login
+        }
       } else {
+        if (mounted) {
         // Login fallito
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -80,6 +84,7 @@ class _LoginPageState extends State<LoginPage> {
             duration: Duration(seconds: 3),
           ),
         );
+        }
       }
     } catch (e) {
       print('Errore durante il login: $e');
@@ -90,9 +95,11 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     } finally {
+      if (mounted) {
       setState(() {
         _isLoading = false;
       });
+    }
     }
   }
 

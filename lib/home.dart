@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'colors.dart';
+import 'app_colors.dart';
 import 'generic_list.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -35,11 +35,14 @@ class _HomeState extends State<Home> {
     await prefs.remove('email');
     await prefs.remove('password');
     await prefs.remove('rememberMe');
+
+    if (mounted){
     // Naviga alla pagina di login dopo il logout
     Navigator.of(context).pushNamedAndRemoveUntil(
       '/login',
       (Route<dynamic> route) => false,
-    ); 
+    );
+    } 
   }
 
   void _clearSearchField() {
