@@ -199,7 +199,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                       quantity: _quantita,
                     );
                     _aggiornaQuantita('0');
-
+                    
                     // Mostra il messaggio "aggiunto al carrello"
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
