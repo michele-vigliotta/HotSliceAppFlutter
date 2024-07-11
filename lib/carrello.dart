@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hot_slice_app/crea_ordine_dialog.dart';
 import 'package:provider/provider.dart';
 import 'carrello_model.dart';
 import 'carrello_provider.dart';
-import 'colors.dart';
+import 'app_colors.dart';
 
 class Carrello extends StatelessWidget {
   const Carrello({super.key});
@@ -11,6 +12,7 @@ class Carrello extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Center(
           child: Text(
@@ -163,12 +165,22 @@ class Carrello extends StatelessWidget {
                   foregroundColor: Colors.black,
                 ),
                 onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext) {
-                      return const CreaOrdineDialog();
-                    },
-                  );
+                  if (carrelloProvider.listaCarrello.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Aggiungere prodotti al carrello prima di continuare'),
+                        duration: Duration(seconds: 1, milliseconds: 250),
+                      ),
+                    );
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext) {
+                        return const CreaOrdineDialog();
+                      },
+                    );
+                  }
                 },
                 child: const Text("Procedi con l'ordine!",
                     style: TextStyle(

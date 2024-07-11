@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'app_colors.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,6 +20,30 @@ class _LoginPageState extends State<LoginPage> {
   bool _rememberMe = false;
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _checkAutoLogin();
+  }
+
+  void _checkAutoLogin() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? email = prefs.getString('email');
+    String? password = prefs.getString('password');
+    bool rememberMe = prefs.getBool('rememberMe') ?? false;
+
+    setState(() {
+      _rememberMe = rememberMe;
+    });
+
+    //se le credenziali sono salvate esegue il login in automatico
+    if (email != null && password != null) {
+      _emailController.text = email;
+      _passwordController.text = password;
+      _login();
+    }
+  }
+
   void _login() async {
     setState(() {
       _isLoading = true;
@@ -30,15 +55,28 @@ class _LoginPageState extends State<LoginPage> {
         password: _passwordController.text,
       );
 
+      // Login successful
       if (userCredential.user != null) {
-        // Login successful
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+
         if (_rememberMe) {
-          // Implementa la tua logica per memorizzare lo stato di "Accedi automaticamente"
+          
+          await prefs.setString('email', _emailController.text.trim());
+          await prefs.setString('password', _passwordController.text.trim());
+          await prefs.setBool('rememberMe', true);
+        } else {
+          await prefs.remove('email');
+          await prefs.remove('password');
+          await prefs.remove('rememberMe');
         }
+
+        if(mounted){
 
         Navigator.of(context).pushReplacementNamed(
             '/container'); // Naviga alla MainPage dopo il login
+        }
       } else {
+        if (mounted) {
         // Login fallito
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -46,6 +84,7 @@ class _LoginPageState extends State<LoginPage> {
             duration: Duration(seconds: 3),
           ),
         );
+        }
       }
     } catch (e) {
       print('Errore durante il login: $e');
@@ -56,15 +95,23 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     } finally {
+      if (mounted) {
       setState(() {
         _isLoading = false;
       });
+    }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(0.0), // Altezza personalizzata della AppBar
+        child: AppBar(
+          backgroundColor: AppColors.primaryColor,
+        ),
+      ),
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(16.0),
@@ -76,30 +123,41 @@ class _LoginPageState extends State<LoginPage> {
                 'HotSlice',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.red,
+                  color: AppColors.primaryColor,
                   fontSize: 30.0,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 20.0),
+              const SizedBox(height: 80),
               Image.asset(
-                'images/pizzalogin.png', // Assicurati di avere l'immagine nella cartella 'images'
+                'images/pizzalogin.png', 
                 height: 186.0,
                 width: 234.0,
                 fit: BoxFit.contain,
               ),
-              const SizedBox(height: 20.0),
+              const SizedBox(height: 140.0),
               Form(
                 key: _formKey,
                 child: Column(
                   children: <Widget>[
                     TextFormField(
                       controller: _emailController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'Email',
-                        contentPadding: EdgeInsets.all(16.0),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
+                        contentPadding: const EdgeInsets.all(16.0),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2.0,
+                          ), 
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2.0,
+                          ),
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -113,11 +171,22 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 15.0),
                     TextFormField(
                       controller: _passwordController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'Password',
                         contentPadding: EdgeInsets.all(16.0),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2.0,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2.0,
+                          ),
                         ),
                       ),
                       obscureText: true,
@@ -139,7 +208,10 @@ class _LoginPageState extends State<LoginPage> {
                               _rememberMe = value!;
                             });
                           },
-                          activeColor: Colors.red,
+                          activeColor: AppColors.primaryColor,
+                          side: MaterialStateBorderSide.resolveWith((states) =>
+                              BorderSide(
+                                  width: 2.0, color: AppColors.primaryColor)),
                         ),
                         const Text(
                           'Accedi automaticamente',
@@ -155,15 +227,21 @@ class _LoginPageState extends State<LoginPage> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red, // Colore del pulsante
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        backgroundColor: AppColors.secondaryColor,
+                        fixedSize: Size(150.0, 40.0),
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(
                               valueColor:
                                   AlwaysStoppedAnimation<Color>(Colors.white),
                             )
-                          : const Text('Login'),
+                          : const Text(
+                              'LOGIN',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 15,
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 24.0),
                     GestureDetector(
@@ -171,12 +249,25 @@ class _LoginPageState extends State<LoginPage> {
                         Navigator.of(context).pushNamed(
                             '/register'); // Naviga alla pagina di registrazione
                       },
-                      child: const Text(
-                        'Non sei ancora registrato? Registrati ora!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 18.0,
+                      child:  RichText(
+                        text: const TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Non sei ancora registrato?',
+                              style: TextStyle(
+                                color: AppColors.myGrey,
+                                fontSize: 18,
+                              )
+                            ),
+                            TextSpan(
+                              text: ' Registrati ora!',
+                              style: TextStyle(
+                                color: AppColors.primaryColor,
+                                fontSize: 18,
+                              )
+                            ),
+
+                          ]
                         ),
                       ),
                     ),

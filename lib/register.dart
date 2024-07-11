@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hot_slice_app/colors.dart';
+import 'app_colors.dart';
 
 
 class RegisterPage extends StatefulWidget {

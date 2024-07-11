@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:hot_slice_app/colors.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'app_colors.dart';
 import 'package:hot_slice_app/ordine_model.dart';
 import 'package:provider/provider.dart';
 import 'carrello_provider.dart';
@@ -15,7 +16,9 @@ class CreaOrdineDialog extends StatefulWidget {
 class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
   String _servizioSelezionato = '';
   bool _mostraCampi = false;
-   final _formKey = GlobalKey<FormState>(); // GlobalKey per la Form
+  final _formKey = GlobalKey<FormState>(); // GlobalKey per la Form
+  var initialTime;
+  TimeOfDay? selectedTime;
 
   TextEditingController tavoloController = TextEditingController();
   TextEditingController oraController = TextEditingController();
@@ -31,10 +34,19 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
     super.dispose();
   }
 
+  void _resetForm() {
+    _formKey.currentState?.reset();
+    tavoloController.clear();
+    oraController.clear();
+    nomeController.clear();
+    telefonoController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     //accesso al provider
-    final carrelloProvider = Provider.of<CarrelloProvider>(context, listen: false); 
+    final carrelloProvider =
+        Provider.of<CarrelloProvider>(context, listen: false);
 
     return AlertDialog(
       title: const Text(
@@ -59,6 +71,7 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
                   setState(() {
                     _servizioSelezionato = value!;
                     _mostraCampi = true;
+                    _resetForm();
                   });
                 },
                 activeColor: AppColors.primaryColor,
@@ -73,6 +86,7 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
                   setState(() {
                     _servizioSelezionato = value!;
                     _mostraCampi = true;
+                    _resetForm();
                   });
                 },
                 activeColor: AppColors.primaryColor,
@@ -98,6 +112,11 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
         ),
         TextButton(
           onPressed: () {
+            // validatore per i radio button
+            if (_servizioSelezionato.isEmpty) {
+              Fluttertoast.showToast(msg: 'Seleziona una modalità di ritiro');
+              return;
+            }
             // Se la form é valida
             if (_formKey.currentState!.validate()) {
               String numeroTavolo = tavoloController.text;
@@ -115,7 +134,7 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
               );
               carrelloProvider.creaOrdine(nuovoOrdine);
               Navigator.of(context).pop();
-            } 
+            }
           },
           child: const Text(
             'OK',
@@ -128,7 +147,7 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
 
   Widget _buildCampiDinamici() {
     if (_servizioSelezionato == 'Servizio al Tavolo') {
-      return  Column(
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
@@ -162,7 +181,7 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
         ],
       );
     } else if (_servizioSelezionato == "Servizio d'asporto") {
-      return  Column(
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
@@ -171,6 +190,45 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
           ),
           const SizedBox(height: 8),
           TextFormField(
+            onTap: () async {
+              FocusScope.of(context).requestFocus(FocusNode());
+
+              //In questo modo il time picker parte da 30 min dopo l'ora corrente se sono passate le 19
+              final now = DateTime.now();
+
+              final in30Minutes = now.add(Duration(minutes: 30));
+              initialTime =
+                  TimeOfDay(hour: in30Minutes.hour, minute: in30Minutes.minute);
+
+              selectedTime = await showTimePicker(
+                initialTime: initialTime,
+                context: context,
+                builder: (BuildContext context, Widget? child) {
+                  return Theme(
+                      data: ThemeData.light().copyWith(
+                          colorScheme: const ColorScheme.light(
+                            primary: AppColors
+                                .primaryColor, // Colore principale del time picker
+                            onSurface: AppColors
+                                .secondaryColor, // Colore dei numeri e delle etichette
+                          ),
+                          buttonTheme: const ButtonThemeData(
+                            colorScheme: ColorScheme.light(
+                              primary: AppColors
+                                  .primaryColor, // Colore dei bottoni (OK e Cancel)
+                            ),
+                          ),
+                          timePickerTheme: const TimePickerThemeData(
+                            dialBackgroundColor:
+                                Color.fromARGB(255, 241, 241, 241),
+                          )),
+                      child: child!);
+                },
+              );
+              if (selectedTime != null) {
+                oraController.text = selectedTime!.format(context);
+              }
+            },
             controller: oraController,
             decoration: const InputDecoration(
               labelText: 'Ora',
@@ -182,10 +240,13 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
                 borderSide: BorderSide(color: AppColors.secondaryColor),
               ),
             ),
-            keyboardType: TextInputType.datetime,
+            readOnly: true,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return "Inserisci l'orario di ritiro";
+              } else if (!(selectedTime!.hour >= initialTime.hour &&
+                  selectedTime!.hour <= 23)) {
+                return "Seleziona un orario tra le 19:00 e le 24:00,\nalmeno 30 minuti da ora";
               }
               return null;
             },
@@ -225,7 +286,9 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
             ),
             keyboardType: TextInputType.phone,
             validator: (value) {
-              if (value == null || value.isEmpty || telefonoController.text.length != 10) {
+              if (value == null ||
+                  value.isEmpty ||
+                  telefonoController.text.length != 10) {
                 return "Inserire un numero di telefono valido";
               }
               return null;

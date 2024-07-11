@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'colors.dart';
+import 'app_colors.dart';
 import 'dettagli_prodotto.dart';
 
 class GenericList extends StatelessWidget {
@@ -14,28 +15,24 @@ class GenericList extends StatelessWidget {
     required this.searchQuery,
   });
 
-  void _showToast(BuildContext context) {
-    String message;
-    switch (collectionName) {
-      case 'pizze':
-        message = 'Pizza non presente nel menù';
-        break;
-      case 'bibite':
-        message = 'Bibita non presente nel menù';
-        break;
-      case 'dolci':
-        message = 'Dolce non presente nel menù';
-        break;
-      default:
-        message = 'Prodotto non presente nel menù';
-    }
+  void _showToast(BuildContext context, String message) {
     Fluttertoast.showToast(
       msg: message,
       toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
+      gravity: ToastGravity.CENTER,
       backgroundColor: Colors.grey[800],
       textColor: Colors.white,
     );
+  }
+
+  Future<String> _getImageUrl(String imageName) async {
+    try {
+      final Reference ref = FirebaseStorage.instance.ref().child(imageName);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print('Errore nel recupero dell\'URL dell\'immagine: $e');
+      return 'https://example.com/default.png'; // URL immagine di default
+    }
   }
 
   @override
@@ -48,7 +45,7 @@ class GenericList extends StatelessWidget {
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          _showToast(context);
+          _showToast(context, '$collectionName non presente nel menù');
           return Center(child: Text('$collectionName non presente nel menù'));
         }
 
@@ -59,19 +56,42 @@ class GenericList extends StatelessWidget {
         }).toList();
 
         if (items.isEmpty) {
-          _showToast(context);
-          return const Center(child: Text('Nessun prodotto corrisponde alla ricerca'));
+          _showToast(context, 'Nessun prodotto corrisponde alla ricerca');
         }
 
         return ListView.builder(
           itemCount: items.length,
           itemBuilder: (context, index) {
             final item = items[index].data() as Map<String, dynamic>;
-            return GenericItem(
-              nome: item['nome'] ?? 'Unnamed Item',
-              prezzo: item['prezzo']?.toDouble() ?? 0.0,
-              imageUrl: item['foto'] ?? 'https://example.com/default.png',
-              descrizione: item['descrizione'] ?? 'No description available',
+            final imageName = item['foto']?.toString() ?? 'assets/default.png';
+            return FutureBuilder<String>(
+              future: _getImageUrl(imageName),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return SizedBox(
+                    width: 120.0,
+                    height: 100.0,
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+                if (snapshot.hasError) {
+                  return Container(
+                    width: 120.0,
+                    height: 100.0,
+                    child: Icon(Icons.error, color: AppColors.primaryColor),
+                  );
+                }
+
+                final imageUrl = snapshot.data ?? 'https://example.com/default.png';
+                return GenericItem(
+                  nome: item['nome'] ?? 'Unnamed Item',
+                  prezzo: item['prezzo']?.toDouble() ?? 0.0,
+                  imageUrl: imageUrl,
+                  descrizione: item['descrizione'] ?? 'No description available',
+                );
+              },
             );
           },
         );
@@ -125,26 +145,29 @@ class GenericItem extends StatelessWidget {
               SizedBox(
                 width: 120.0,
                 height: 100.0,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-                    ),
-                    Image.network(
-                      imageUrl,
-                      width: 120.0,
-                      height: 100.0,
-                      fit: BoxFit.fitWidth,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const SizedBox(
-                          width: 120.0,
-                          height: 100.0,
-                          child: Icon(Icons.error, color: AppColors.primaryColor),
-                        );
-                      },
-                    ),
-                  ],
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10.0),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                      ),
+                      Image.network(
+                        imageUrl,
+                        width: 120.0,
+                        height: 100.0,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: 120.0,
+                            height: 100.0,
+                            child: Icon(Icons.error, color: AppColors.primaryColor),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: 8.0),
