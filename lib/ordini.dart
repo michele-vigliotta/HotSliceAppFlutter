@@ -155,9 +155,11 @@ class ItemOrdine {
   String data;
   String descrizione;
   String stato;
+  String tavolo;
   String tipo;
   String totale;
   String nome;
+  String ora;
   String telefono;
 
   ItemOrdine({
@@ -165,9 +167,11 @@ class ItemOrdine {
     required this.data,
     required this.descrizione,
     required this.stato,
+    required this.tavolo,
     required this.tipo,
     required this.totale,
     required this.nome,
+    required this.ora,
     required this.telefono,
   });
 
@@ -177,9 +181,11 @@ class ItemOrdine {
       data: doc['data'],
       descrizione: doc['descrizione'],
       stato: doc['stato'],
+      tavolo:doc['tavolo'],
       tipo: doc['tipo'],
       totale: doc['totale'],
       nome: doc['nome'],
+      ora: doc['ora'],
       telefono: doc['telefono'],
     );
   }
@@ -205,44 +211,44 @@ class OrdineCard extends StatelessWidget {
           children: <Widget>[
             Text(
               'Ordine in data: ${ordine.data}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.orange,
                 fontSize: 18.0,
               ),
             ),
-            SizedBox(height: 24.0),
+            const SizedBox(height: 24.0),
             Text(
               'Descrizione: ${ordine.descrizione}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18.0,
                 color: Colors.black,
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             Text(
               'Totale: ${ordine.totale}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18.0,
                 color: Colors.black,
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             Text(
               'Tipo: ${ordine.tipo}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18.0,
                 color: Colors.black,
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             if (ordine.tipo == 'Servizio al Tavolo')
               Text(
-                'Tavolo: ${ordine.descrizione}', // Update with actual table info if available
-                style: TextStyle(
+                'Tavolo: ${ordine.tavolo}', // Update with actual table info if available
+                style: const TextStyle(
                 fontWeight: FontWeight.bold,
                   fontSize: 18.0,
                   color: Colors.black,
@@ -250,34 +256,36 @@ class OrdineCard extends StatelessWidget {
               ),
             if (ordine.tipo == "Servizio d'Asporto")
               Text(
-                'Ora di ritiro: ${ordine.data}', // Update with actual pickup time if available
-                style: TextStyle(
+                'Ora di ritiro: ${ordine.ora}', // Update with actual pickup time if available
+                style: const TextStyle(
                 fontWeight: FontWeight.bold,
                   fontSize: 18.0,
                   color: Colors.black,
                 ),
               ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             Text(
               'Nome: ${ordine.nome}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18.0,
                 color: Colors.black,
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             Text(
               'Telefono: ${ordine.telefono}',
-              style: TextStyle(
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
                 fontSize: 18.0,
                 color: Colors.black,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'Stato: ${ordine.stato}',
-              style: TextStyle(
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
                 fontSize: 16.0,
                 color: Colors.black,
               ),
