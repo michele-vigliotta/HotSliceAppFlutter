@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:hot_slice_app/colors.dart';
+import 'app_colors.dart';
 import 'package:hot_slice_app/ordine_model.dart';
 import 'package:provider/provider.dart';
 import 'carrello_provider.dart';

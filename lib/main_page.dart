@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'colors.dart';
+import 'app_colors.dart';
 import 'home.dart';
 import 'offerte.dart';
 import 'preferiti.dart';
