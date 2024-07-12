@@ -71,29 +71,42 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
   }
 
   Future<void> _addOffer() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    String nome = _nomeController.text;
-    String descrizione = _descrizioneController.text;
-    String prezzo = _prezzoController.text;
-
-    double prezzoNum = double.parse(prezzo);
-
-    Map<String, dynamic> newOffer = {
-      'nome': nome,
-      'prezzo': prezzoNum,
-      'descrizione': descrizione,
-      'foto': _uploadedImageUrl,
-    };
-
-    await FirebaseFirestore.instance.collection('offerte').add(newOffer);
-
-    widget.onOfferAdded();
-
-    Navigator.of(context).pop();
+  if (!_formKey.currentState!.validate()) {
+    return;
   }
+
+  String nome = _nomeController.text;
+  String descrizione = _descrizioneController.text;
+  String prezzo = _prezzoController.text;
+
+  double prezzoNum = double.parse(prezzo);
+
+  // Check if offer with the same name already exists
+  QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+      .collection('offerte')
+      .where('nome', isEqualTo: nome)
+      .get();
+
+  if (querySnapshot.docs.isNotEmpty) {
+    // Offer with the same name already exists
+    Fluttertoast.showToast(msg: 'Offerta già esistente');
+    return;
+  }
+
+  // Proceed to add the new offer
+  Map<String, dynamic> newOffer = {
+    'nome': nome,
+    'prezzo': prezzoNum,
+    'descrizione': descrizione,
+    'foto': _uploadedImageUrl,
+  };
+
+  await FirebaseFirestore.instance.collection('offerte').add(newOffer);
+
+  widget.onOfferAdded();
+
+  Navigator.of(context).pop();
+}
 
   @override
   Widget build(BuildContext context) {
