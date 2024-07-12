@@ -14,10 +14,19 @@ class Carrello extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Center(
-          child: Text(
-            'Carrello',
-            style: TextStyle(color: AppColors.primaryColor),
+        backgroundColor: Colors.white, // Sfondo bianco per l'Appbar
+        title: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            color: Colors.white, // Sfondo bianco per il container del titolo
+            child: const Text(
+              'Carrello',
+              style: TextStyle(
+                color: AppColors.primaryColor,
+                fontSize: 28.0, 
+                fontWeight: FontWeight.bold, 
+              ),
+            ),
           ),
         ),
       ),
@@ -33,6 +42,7 @@ class Carrello extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final item = listaCarrello[index];
                     return Card(
+                      color: Colors.white,
                       elevation: 4.0,
                       margin: const EdgeInsets.all(8.0),
                       shape: RoundedRectangleBorder(
@@ -88,7 +98,7 @@ class Carrello extends StatelessWidget {
                                     ),
                                   ),
                                   Text(
-                                    '€${item.price.toStringAsFixed(2)}',
+                                    '${item.price.toStringAsFixed(2)} €',
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
                                       fontSize: 14.0,

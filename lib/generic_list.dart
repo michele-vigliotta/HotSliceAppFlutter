@@ -68,11 +68,13 @@ class GenericList extends StatelessWidget {
               future: _getImageUrl(imageName),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SizedBox(
+                  return SizedBox(
                     width: 120.0,
                     height: 100.0,
-                    child: Center(
-                      child: CircularProgressIndicator(),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                      ),
                     ),
                   );
                 }
@@ -95,6 +97,9 @@ class GenericList extends StatelessWidget {
                           prezzo: item['prezzo']?.toDouble() ?? 0.0,
                           imageUrl: imageUrl,
                           descrizione: item['descrizione'] ?? 'No description available',
+                          onProductEdited: () {
+                            // Implementa la logica di aggiornamento se necessario
+                          },
                         ),
                       ),
                     );

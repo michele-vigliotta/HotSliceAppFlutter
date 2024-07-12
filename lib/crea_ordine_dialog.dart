@@ -134,7 +134,12 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
               );
               carrelloProvider.creaOrdine(nuovoOrdine);
               Navigator.of(context).pop();
-              
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Ordine effettuato'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
             }
           },
           child: const Text(

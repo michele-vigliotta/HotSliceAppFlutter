@@ -6,21 +6,31 @@ import 'package:hot_slice_app/app_colors.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-class NewOfferDialog extends StatefulWidget {
-  final Function onOfferAdded;
+class ModificaOffertaDialog extends StatefulWidget {
+  final String nome;
+  final String descrizione;
+  final double prezzo;
+  final String imageUrl;
+  final Function onOfferEdited;
 
-  NewOfferDialog({required this.onOfferAdded});
+  ModificaOffertaDialog({
+    required this.nome,
+    required this.descrizione,
+    required this.prezzo,
+    required this.imageUrl,
+    required this.onOfferEdited,
+  });
 
   @override
-  _NewOfferDialogState createState() => _NewOfferDialogState();
+  _ModificaOffertaDialogState createState() => _ModificaOffertaDialogState();
 }
 
-class _NewOfferDialogState extends State<NewOfferDialog> {
+class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
+  
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _descrizioneController = TextEditingController();
   final TextEditingController _prezzoController = TextEditingController();
-
-  final FocusNode _nomeFocusNode = FocusNode();
+  
   final FocusNode _descrizioneFocusNode = FocusNode();
   final FocusNode _prezzoFocusNode = FocusNode();
 
@@ -29,6 +39,14 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
   String? _uploadedImageUrl;
 
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _nomeController.text = widget.nome;
+    _descrizioneController.text = widget.descrizione;
+    _prezzoController.text = widget.prezzo.toString();
+  }
 
   Future<void> _pickImage() async {
     final pickedFile =
@@ -61,38 +79,63 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
         _uploadedImageUrl = downloadUrl;
         _isUploading = false;
       });
-      Fluttertoast.showToast(msg: 'Immagine caricata con successo');
+
+      Fluttertoast.showToast(msg:'Immagine caricata con successo');
     } catch (e) {
       setState(() {
         _isUploading = false;
       });
-      Fluttertoast.showToast(msg: 'Immagine caricata con successo');
+
+      Fluttertoast.showToast(msg:'Errore durante il caricamneto dell\'immagine');
     }
   }
 
-  Future<void> _addOffer() async {
+  Future<void> _updateOffer() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+
 
     String nome = _nomeController.text;
     String descrizione = _descrizioneController.text;
     String prezzo = _prezzoController.text;
 
+    
+
     double prezzoNum = double.parse(prezzo);
 
-    Map<String, dynamic> newOffer = {
+    Map<String, dynamic> updatedOffer = {
       'nome': nome,
       'prezzo': prezzoNum,
       'descrizione': descrizione,
-      'foto': _uploadedImageUrl,
+      'foto': _uploadedImageUrl ??
+          widget.imageUrl, // Usa l'immagine caricata o quella esistente
     };
 
-    await FirebaseFirestore.instance.collection('offerte').add(newOffer);
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('offerte')
+          .where('nome', isEqualTo: widget.nome)
+          .get();
 
-    widget.onOfferAdded();
+      if (querySnapshot.docs.isNotEmpty) {
+        for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+          await FirebaseFirestore.instance
+              .collection('offerte')
+              .doc(doc.id)
+              .update(updatedOffer);
+        }
 
-    Navigator.of(context).pop();
+        widget.onOfferEdited();
+        Navigator.of(context).pop();
+        Fluttertoast.showToast(msg: 'Offerta aggiornata con successo');
+      }
+    } catch (e) {
+      print('Errore durante l\'aggiornamento dell\'offerta: $e');
+      Fluttertoast.showToast(
+          msg: 'Si è verificato un errore, si prega di riprovare');
+    }
   }
 
   @override
@@ -100,7 +143,7 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
     return AlertDialog(
       title: Center(
         child: Text(
-          'Nuova Offerta',
+          'Modifica Offerta',
           style: TextStyle(color: AppColors.primaryColor),
         ),
       ),
@@ -110,82 +153,81 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextFormField(
-                controller: _nomeController,
-                focusNode: _nomeFocusNode,
-                decoration: InputDecoration(labelText: 'Nome',
-                labelStyle: TextStyle(color: AppColors.myGrey),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.secondaryColor),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.secondaryColor),
-                  ),),
-                textInputAction: TextInputAction.next,
-                onFieldSubmitted: (_) {
-                  FocusScope.of(context).requestFocus(_descrizioneFocusNode);
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Inserisci una descrizione';
-                  }
-                  return null;
-                },
+              Text(
+                widget.nome,
+                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
               ),
               TextFormField(
-                  controller: _descrizioneController,
-                  focusNode: _descrizioneFocusNode,
-                  decoration: InputDecoration(labelText: 'Descrizione',
+                controller: _descrizioneController,
+                focusNode: _descrizioneFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Descrizione',
                   labelStyle: TextStyle(color: AppColors.myGrey),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.secondaryColor),
                   ),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.secondaryColor),
-                  ),),
-                  textInputAction: TextInputAction.next,
-                  onFieldSubmitted: (_) {
-                    FocusScope.of(context).requestFocus(_prezzoFocusNode);
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Inserisci una descrizione';
-                    }
-                    return null;
-                  }),
+                  ),
+                ),
+                textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(_prezzoFocusNode);
+                      },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                            return 'Inserisci una descrizione';
+                }
+                return null;
+                }
+              ),
               TextFormField(
                 controller: _prezzoController,
                 focusNode: _prezzoFocusNode,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Inserisci un prezzo';
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(labelText: 'Prezzo',
-                labelStyle: TextStyle(color: AppColors.myGrey),
+                decoration: InputDecoration(
+                  labelText: 'Prezzo',
+                  labelStyle: TextStyle(color: AppColors.myGrey),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.secondaryColor),
                   ),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.secondaryColor),
-                  ),),
+                  ),
+                ),
                 textInputAction: TextInputAction.done,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                            return 'Inserisci un prezzo';
+                }
+                return null;
+                },
                 keyboardType: TextInputType.number,
               ),
               SizedBox(height: 16),
               _imageFile == null
-                  ? Text('Nessuna immagine selezionata'
-                  )
-                  : Image.file(_imageFile!, height: 150),
-              SizedBox(height: 8),
+                  ? Column(
+                      children: [
+                        Image.network(widget.imageUrl,
+                            height: 150), // Mostra l'immagine corrente
+                        SizedBox(height: 8),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        Image.file(_imageFile!,
+                            height: 150), // Mostra l'immagine selezionata
+                        SizedBox(height: 8),
+                      ],
+                    ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.secondaryColor,
                 ),
                 onPressed: _isUploading ? null : _pickImage,
-                child: Text('Seleziona Immagine',
-                style: TextStyle(color: Colors.black)),
+                child: Text(
+                  'Cambia immagine',
+                  style: TextStyle(color: Colors.black),
+                ),
               ),
               _isUploading ? CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
@@ -205,7 +247,7 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
             ),
           ),
           TextButton(
-            onPressed: _isUploading ? null : _addOffer,
+            onPressed: _isUploading ? null : _updateOffer,
             child: Text(
               'Aggiorna',
               style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),

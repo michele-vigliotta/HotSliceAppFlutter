@@ -16,6 +16,7 @@ class _OrdiniState extends State<Ordini> {
   String role = "";
   late Future<List<ItemOrdine>> ordiniList;
   bool isStaff = false;
+  bool isLoading = true; // Aggiunto per gestire il caricamento iniziale
   ButtonStyle selectedButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: Colors.blue, // button background color
   );
@@ -29,6 +30,7 @@ class _OrdiniState extends State<Ordini> {
     _checkUserRole();
   }
 
+
   void _checkUserRole() async {
     User? currentUser = auth.currentUser;
     if (currentUser != null) {
@@ -38,17 +40,18 @@ class _OrdiniState extends State<Ordini> {
         if (role == 'staff') {
           setState(() {
             isStaff = true;
-            ordiniList = _filterOrdini('Servizio al Tavolo');
           });
+          ordiniList = _filterOrdini('Servizio al Tavolo');
         }
       } else {
-        setState(() {
-          ordiniList = _loadOrdini(currentUser.uid);
-        });
+        ordiniList = _loadOrdini(currentUser.uid);
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Devi essere loggato per visualizzare gli ordini")));
     }
+    setState(() {
+      isLoading = false;
+    }); // Set isLoading to false once the user role is checked
   }
 
  Future<List<ItemOrdine>> _loadOrdini(String userId) async {
@@ -101,8 +104,28 @@ class _OrdiniState extends State<Ordini> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Ordini'),
+        backgroundColor: Colors.white,
+        title: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            color: Colors.white,
+            child: const Text(
+              'Ordini',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryColor,
+                fontSize: 28.0,
+              ),
+            ),
+          ),
+        ),
+        flexibleSpace: FlexibleSpaceBar(
+          background: Container(
+            color: Colors.white,
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -124,7 +147,7 @@ class _OrdiniState extends State<Ordini> {
                       shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
-                    child: Text('Al Tavolo'),
+                    child: const Text('Al Tavolo'),
                   ),
                   SizedBox(width: 20),
                   ElevatedButton(
@@ -139,13 +162,15 @@ class _OrdiniState extends State<Ordini> {
                       shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
-                    child: Text("D'Asporto"),
+                    child: const Text("D'Asporto"),
                   ),
                 ],
               ),
             if (isStaff) ...[
               SizedBox(height: 16),
               Divider(color: Colors.grey),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
@@ -159,27 +184,29 @@ class _OrdiniState extends State<Ordini> {
               Divider(color: Colors.grey),
             ],
             Expanded(
-              child: FutureBuilder<List<ItemOrdine>>(
-                future: ordiniList,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Errore: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('Nessun ordine trovato'));
-                  } else {
-                    final ordini = snapshot.data!;
-                    return ListView.builder(
-                      itemCount: ordini.length,
-                      itemBuilder: (context, index) {
-                        final ordine = ordini[index];
-                        return OrdineCard(ordine: ordine);
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : FutureBuilder<List<ItemOrdine>>(
+                      future: ordiniList,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Center(child: Text('Errore: ${snapshot.error}'));
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const Center(child: Text('Nessun ordine effettuato'));
+                        } else {
+                          final ordini = snapshot.data!;
+                          return ListView.builder(
+                            itemCount: ordini.length,
+                            itemBuilder: (context, index) {
+                              final ordine = ordini[index];
+                              return OrdineCard(ordine: ordine);
+                            },
+                          );
+                        }
                       },
-                    );
-                  }
-                },
-              ),
+                    ),
             ),
           ],
         ),
@@ -246,6 +273,7 @@ class OrdineCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.white, // Aggiungi questa linea per impostare lo sfondo bianco
       margin: EdgeInsets.all(8.0),
       elevation: 4.0,
       shape: RoundedRectangleBorder(
@@ -259,8 +287,8 @@ class OrdineCard extends StatelessWidget {
             Text(
               'Ordine in data: ${ordine.formattedData}',
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
                 color: Colors.orange,
+                fontWeight: FontWeight.bold,
                 fontSize: 18.0,
               ),
             ),
@@ -268,16 +296,14 @@ class OrdineCard extends StatelessWidget {
             Text(
               'Descrizione: ${ordine.descrizione}',
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
                 fontSize: 18.0,
                 color: Colors.black,
               ),
             ),
             const SizedBox(height: 8.0),
             Text(
-              'Totale: ${ordine.totale}',
+              'Totale: ${ordine.totale} €',
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
                 fontSize: 18.0,
                 color: Colors.black,
               ),
@@ -286,14 +312,13 @@ class OrdineCard extends StatelessWidget {
             Text(
               'Tipo: ${ordine.tipo}',
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
                 fontSize: 18.0,
                 color: Colors.black,
               ),
             ),
-            const SizedBox(height: 8.0),
             if (ordine.tipo == 'Servizio al Tavolo')
               Text(
+                'Tavolo: ${ordine.tavolo}',
                 'Tavolo: ${ordine.tavolo}',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
@@ -301,42 +326,34 @@ class OrdineCard extends StatelessWidget {
                   color: Colors.black,
                 ),
               ),
-            if (ordine.tipo == "Servizio d'Asporto")
-              Text(
-                'Ora di ritiro: ${ordine.ora}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18.0,
-                  color: Colors.black,
-                ),
+            if (ordine.tipo != 'Servizio al Tavolo')
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                  'Ora di ritiro: ${ordine.ora}',
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Text(
+                    'Nome: ${ordine.nome}',
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Telefono: ${ordine.telefono}',
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
               ),
-            const SizedBox(height: 8.0),
-            Text(
-              'Nome: ${ordine.nome}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18.0,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 8.0),
-            Text(
-              'Telefono: ${ordine.telefono}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18.0,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 20.0),
-            Text(
-              'Stato: ${ordine.stato}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16.0,
-                color: Colors.black,
-              ),
-            ),
           ],
         ),
       ),
