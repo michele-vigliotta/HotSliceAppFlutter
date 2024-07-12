@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'app_colors.dart';
+import 'package:intl/intl.dart';
 
 class Ordini extends StatefulWidget {
   @override
@@ -30,6 +31,7 @@ class _OrdiniState extends State<Ordini> {
     _checkUserRole();
   }
 
+
   void _checkUserRole() async {
     User? currentUser = auth.currentUser;
     if (currentUser != null) {
@@ -53,15 +55,52 @@ class _OrdiniState extends State<Ordini> {
     }); // Set isLoading to false once the user role is checked
   }
 
-  Future<List<ItemOrdine>> _loadOrdini(String userId) async {
-    QuerySnapshot querySnapshot = await db.collection('ordini').where('userId', isEqualTo: userId).get();
-    return querySnapshot.docs.map((doc) => ItemOrdine.fromDocument(doc)).toList();
-  }
+ Future<List<ItemOrdine>> _loadOrdini(String userId) async {
+  QuerySnapshot querySnapshot = await db.collection('ordini').where('userId', isEqualTo: userId).get();
+  
+  List<ItemOrdine> ordini = querySnapshot.docs.map((doc) {
+    Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+    if (data != null && data.containsKey('data')) {
+      String dateString = data['data'];
+      DateTime dataOrdine = DateTime.parse(dateString); // Converti la stringa in DateTime
+      return ItemOrdine.fromDocument(doc, dataOrdine: dataOrdine);
+    } else {
+      // Handle the case where 'data' is missing or null
+      throw Exception("Missing or invalid 'data' field in Firestore document");
+    }
+  }).toList();
+
+  // Ordina gli ordini per dataOrdine, dal più recente al più vecchio
+  ordini.sort((a, b) => b.dataOrdine.compareTo(a.dataOrdine));
+
+  return ordini;
+}
+
 
   Future<List<ItemOrdine>> _filterOrdini(String tipo) async {
-    QuerySnapshot querySnapshot = await db.collection('ordini').where('tipo', isEqualTo: tipo).get();
-    return querySnapshot.docs.map((doc) => ItemOrdine.fromDocument(doc)).toList();
-  }
+  DateTime now = DateTime.now();
+  DateTime twentyFourHoursAgo = now.subtract(Duration(hours: 24));
+
+  QuerySnapshot querySnapshot = await db.collection('ordini')
+      .where('tipo', isEqualTo: tipo)
+      .get();
+
+  List<ItemOrdine> ordini = querySnapshot.docs.map((doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    DateTime dataOrdine = DateTime.parse(data['data']);
+    return ItemOrdine.fromDocument(doc, dataOrdine: dataOrdine);
+  }).toList();
+
+  List<ItemOrdine> ordiniFiltrati = ordini.where((ordine) {
+    return ordine.dataOrdine.isAfter(twentyFourHoursAgo);
+  }).toList();
+
+  // Ordina gli ordini per data, dal più recente al più vecchio
+  ordiniFiltrati.sort((a, b) => b.dataOrdine.compareTo(a.dataOrdine));
+
+  return ordiniFiltrati;
+}
+  
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +216,7 @@ class _OrdiniState extends State<Ordini> {
 
 class ItemOrdine {
   String id;
-  String data;
+  DateTime dataOrdine;
   String descrizione;
   String stato;
   String tavolo;
@@ -189,7 +228,7 @@ class ItemOrdine {
 
   ItemOrdine({
     required this.id,
-    required this.data,
+    required this.dataOrdine,
     required this.descrizione,
     required this.stato,
     required this.tavolo,
@@ -200,21 +239,30 @@ class ItemOrdine {
     required this.telefono,
   });
 
-  factory ItemOrdine.fromDocument(DocumentSnapshot doc) {
+  factory ItemOrdine.fromDocument(DocumentSnapshot doc, {required DateTime dataOrdine}) {
+    final data = doc.data() as Map<String, dynamic>;
     return ItemOrdine(
       id: doc.id,
-      data: doc['data'],
-      descrizione: doc['descrizione'],
-      stato: doc['stato'],
-      tavolo: doc['tavolo'],
-      tipo: doc['tipo'],
-      totale: doc['totale'],
-      nome: doc['nome'],
-      ora: doc['ora'],
-      telefono: doc['telefono'],
+      dataOrdine: dataOrdine,
+      descrizione: data['descrizione'],
+      stato: data['stato'],
+      tavolo: data['tavolo'],
+      tipo: data['tipo'],
+      totale: data['totale'],
+      nome: data['nome'],
+      ora: data['ora'],
+      telefono: data['telefono'],
     );
   }
+
+  String get formattedData {
+    DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    return formatter.format(dataOrdine); // Cambiato da 'dataOrdine' a 'data'
+  }
 }
+
+
+
 
 class OrdineCard extends StatelessWidget {
   final ItemOrdine ordine;
@@ -385,6 +433,96 @@ void _showOrdineDetails(BuildContext context) {
 
 @override
   Widget build(BuildContext context) {
+    return Card(
+      color: Colors.white, // Aggiungi questa linea per impostare lo sfondo bianco
+      margin: EdgeInsets.all(8.0),
+      elevation: 4.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              'Ordine in data: ${ordine.formattedData}',
+              style: const TextStyle(
+                color: Colors.orange,
+                fontWeight: FontWeight.bold,
+                fontSize: 18.0,
+              ),
+            ),
+            const SizedBox(height: 24.0),
+            Text(
+              'Descrizione: ${ordine.descrizione}',
+              style: const TextStyle(
+                fontSize: 18.0,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 8.0),
+            Text(
+              'Totale: ${ordine.totale} €',
+              style: const TextStyle(
+                fontSize: 18.0,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 8.0),
+            Text(
+              'Tipo: ${ordine.tipo}',
+              style: const TextStyle(
+                fontSize: 18.0,
+                color: Colors.black,
+              ),
+            ),
+            if (ordine.tipo == 'Servizio al Tavolo')
+              Text(
+                'Tavolo: ${ordine.tavolo}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18.0,
+                  color: Colors.black,
+                ),
+              ),
+            if (ordine.tipo != 'Servizio al Tavolo')
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                  'Ora di ritiro: ${ordine.ora}',
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Text(
+                    'Nome: ${ordine.nome}',
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Telefono: ${ordine.telefono}',
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Stato: ${ordine.stato}',
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+          ],
     return GestureDetector(
       onTap: () {
         if (isStaff) {

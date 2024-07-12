@@ -9,10 +9,10 @@ import 'carrello_provider.dart';
 import 'package:provider/provider.dart';
 
 class DettagliProdotto extends StatefulWidget {
-  late  String nome;
-  late  double prezzo;
-  late  String imageUrl;
-  late  String descrizione;
+  late String nome;
+  late double prezzo;
+  late String imageUrl;
+  late String descrizione;
   final VoidCallback onProductEdited;
 
   DettagliProdotto({
@@ -105,24 +105,36 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
   }
 
   void _showEliminaConfermaDialog(BuildContext context) {
-    showDialog(context: context, 
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Conferma Eliminazione'),
-        content: Text('Sei sicuro di voler eliminare questo prodotto?'),
-        actions: <Widget>[
-          TextButton(onPressed: () {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Conferma Eliminazione'),
+          content: const Text('Sei sicuro di voler eliminare questo prodotto?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
                 Navigator.of(context).pop();
-              }, child: Text('Annulla',style: TextStyle(color: AppColors.primaryColor),),
+              },
+              child: Text(
+                'Annulla',
+                style: TextStyle(color: AppColors.primaryColor),
               ),
-          TextButton(onPressed: (){
-            _eliminaProdotto();
-            Navigator.of(context).pop();
-
-          }, child:  Text('Prosegui',style: TextStyle(color: AppColors.primaryColor),),)
-        ],
-      );
-    });
+            ),
+            TextButton(
+              onPressed: () {
+                _eliminaProdotto();
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Prosegui',
+                style: TextStyle(color: AppColors.primaryColor),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _eliminaProdotto() async {
@@ -132,9 +144,11 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
           .where('nome', isEqualTo: widget.nome)
           .get();
       if (querySnapshot.docs.isNotEmpty) {
-        for (QueryDocumentSnapshot doc in querySnapshot.docs){
+        for (QueryDocumentSnapshot doc in querySnapshot.docs) {
           await FirebaseFirestore.instance
-          .collection('offerte').doc(doc.id).delete();
+              .collection('offerte')
+              .doc(doc.id)
+              .delete();
         }
         widget.onProductEdited(); // Chiamo la callback
         Navigator.of(context).pop(); // Chiudo vista dettagli
@@ -142,56 +156,66 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
       }
     } catch (e) {
       print('Errore durante la verifica del documento in offerte: $e');
-      Fluttertoast.showToast(msg: 'Si é verificato un errrore, si prega di riprovare');
+      Fluttertoast.showToast(
+          msg: 'Si é verificato un errore, si prega di riprovare');
     }
-  } 
+  }
 
-  void _showModificaOffertaDialog(BuildContext context){
+  void _showModificaOffertaDialog(BuildContext context) {
     showDialog(
-      context: context, 
-      builder: (context)=>ModificaOffertaDialog(nome: widget.nome,
-      descrizione: widget.descrizione,
-      prezzo: widget.prezzo,
-      imageUrl: widget.imageUrl,
-      onOfferEdited: _onOfferEdited),
+      context: context,
+      builder: (context) => ModificaOffertaDialog(
+        nome: widget.nome,
+        descrizione: widget.descrizione,
+        prezzo: widget.prezzo,
+        imageUrl: widget.imageUrl,
+        onOfferEdited: _onOfferEdited,
+      ),
     );
   }
 
   void _onOfferEdited() async {
-  try {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('offerte')
-        .where('nome', isEqualTo: widget.nome)
-        .get();
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('offerte')
+          .where('nome', isEqualTo: widget.nome)
+          .get();
 
-    if (querySnapshot.docs.isNotEmpty) {
-      // Aggiorna i dati della vista con i dati dell'offerta
-      DocumentSnapshot doc = querySnapshot.docs.first;
-      setState(() {
-        widget.nome = doc['nome'];
-        widget.prezzo = doc['prezzo'];
-        widget.descrizione = doc['descrizione'];
-        widget.imageUrl = doc['foto'];
-      });
+      if (querySnapshot.docs.isNotEmpty) {
+        // Aggiorna i dati della vista con i dati dell'offerta
+        DocumentSnapshot doc = querySnapshot.docs.first;
+        setState(() {
+          widget.nome = doc['nome'];
+          widget.prezzo = doc['prezzo'];
+          widget.descrizione = doc['descrizione'];
+          widget.imageUrl = doc['foto'];
+        });
 
-      Fluttertoast.showToast(msg: 'Offerta aggiornata con successo');
-    } else {
-      Fluttertoast.showToast(msg: 'Nessuna offerta trovata');
+        Fluttertoast.showToast(msg: 'Offerta aggiornata con successo');
+      } else {
+        Fluttertoast.showToast(msg: 'Nessuna offerta trovata');
+      }
+    } catch (e) {
+      print('Errore durante l\'aggiornamento dell\'offerta: $e');
+      Fluttertoast.showToast(
+          msg: 'Si è verificato un errore, si prega di riprovare');
     }
-  } catch (e) {
-    print('Errore durante l\'aggiornamento dell\'offerta: $e');
-    Fluttertoast.showToast(msg: 'Si è verificato un errore, si prega di riprovare');
   }
-}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(0.0),
+        preferredSize: const Size.fromHeight(56.0), // Altezza personalizzata della AppBar
         child: AppBar(
           backgroundColor: AppColors.primaryColor,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
         ),
       ),
       body: FutureBuilder<void>(
@@ -333,7 +357,8 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                         ElevatedButton(
                           onPressed: () {
                             // Aggiunge l'articolo al carrello
-                            Provider.of<CarrelloProvider>(context, listen: false)
+                            Provider.of<CarrelloProvider>(context,
+                                    listen: false)
                                 .addToCarrello(
                               CarrelloModel(
                                 name: widget.nome,
@@ -395,8 +420,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                         ElevatedButton(
                           onPressed: () {
                             _showEliminaConfermaDialog(context);
-                            
-                            },
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.secondaryColor,
                             fixedSize: const Size(220.0, 50.0),
