@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'app_colors.dart';
 
 class Ordini extends StatefulWidget {
@@ -160,7 +161,7 @@ class _OrdiniState extends State<Ordini> {
                             itemCount: ordini.length,
                             itemBuilder: (context, index) {
                               final ordine = ordini[index];
-                              return OrdineCard(ordine: ordine);
+                              return OrdineCard(ordine: ordine, isStaff: isStaff,);
                             },
                           );
                         }
@@ -217,92 +218,261 @@ class ItemOrdine {
 
 class OrdineCard extends StatelessWidget {
   final ItemOrdine ordine;
+  final bool isStaff;
 
-  OrdineCard({required this.ordine});
+  OrdineCard({required this.ordine,
+  required this.isStaff});
 
-  @override
+void _showOrdineDetails(BuildContext context) {
+  int _selectedOrderAction = 0; // 0: Accetta, 1: Rifiuta
+  TextEditingController _pickupTimeController = TextEditingController();
+  TimeOfDay? selectedTime;
+  TextEditingController oraController = TextEditingController();
+
+     showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Gestione Ordine'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              
+              Row(
+                children: [
+                  Radio<int>(
+                    value: 0,
+                    groupValue: _selectedOrderAction,
+                    onChanged: (value) {
+                      _selectedOrderAction = value!;
+                      // Trigger rebuild of dialog
+                      (context as Element).markNeedsBuild();
+                    },
+                  ),
+                  const Text('Accetta Ordine'),
+                ],
+              ),
+              Row(
+                children: [
+                  Radio<int>(
+                    value: 1,
+                    groupValue: _selectedOrderAction,
+                    onChanged: (value) {
+                      _selectedOrderAction = value!;
+                      // Trigger rebuild of dialog
+                      (context as Element).markNeedsBuild();
+                    },
+                  ),
+                  const Text('Rifiuta Ordine'),
+                ],
+              ),
+              if (_selectedOrderAction == 0 && ordine.tipo == "Servizio d'Asporto")
+                TextFormField(
+                  onTap : () async {
+                    selectedTime = await showTimePicker(
+                      context: context, 
+                      initialTime: TimeOfDay.now(),
+                      builder: (BuildContext context, Widget? child) {
+                  return Theme(
+                      data: ThemeData.light().copyWith(
+                          colorScheme: const ColorScheme.light(
+                            primary: AppColors
+                                .primaryColor, // Colore principale del time picker
+                            onSurface: AppColors
+                                .secondaryColor, // Colore dei numeri e delle etichette
+                          ),
+                          buttonTheme: const ButtonThemeData(
+                            colorScheme: ColorScheme.light(
+                              primary: AppColors
+                                  .primaryColor, // Colore dei bottoni (OK e Cancel)
+                            ),
+                          ),
+                          timePickerTheme: const TimePickerThemeData(
+                            dialBackgroundColor:
+                                Color.fromARGB(255, 241, 241, 241),
+                          )),
+                      child: child!);
+                },
+                    );
+                    
+                  if (selectedTime != null) {
+                oraController.text = selectedTime!.format(context);
+              }
+            },
+            controller: oraController,
+            decoration: const InputDecoration(
+              labelText: 'Ora',
+              labelStyle: TextStyle(color: AppColors.myGrey),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: AppColors.secondaryColor),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: AppColors.secondaryColor),
+              ),
+            ),
+            readOnly: true,
+          ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text('Annulla'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Conferma'),
+              onPressed: () async {
+                
+              
+              
+              if (_selectedOrderAction == 0){ //accetta
+                try{
+                  CollectionReference ordini = FirebaseFirestore.instance.collection('ordini');
+                  if (ordine.tipo == "Servizio d'Asporto"){ //asporto
+                      
+                    if (oraController.text == null || oraController.text.isEmpty) {
+                        Fluttertoast.showToast(msg: "Inserisci l'orario di ritiro");
+                        return null;
+                    } 
+                
+                  await ordini.doc(ordine.id).update({
+                    
+                  'stato': 'Accettato',
+                  'ora di ritiro': oraController.text,
+                  });
+                  
+                  }
+                  else{ //tavolo
+                    await ordini.doc(ordine.id).update({
+                    
+                  'stato': 'Accettato',});
+                  }
+                  Fluttertoast.showToast(msg: "Ordine Accettato");
+                } catch (e) {
+                  Fluttertoast.showToast(msg: "Errore durante l'iserimento, riprovare");
+                }
+                }else{ //rifiuta
+                  try{
+                  CollectionReference ordini = FirebaseFirestore.instance.collection('ordini');
+                  
+
+                
+                  await ordini.doc(ordine.id).update({
+                    
+                  'stato': 'Rifiutato',
+                  
+                  });
+                  } catch (e) {
+                    Fluttertoast.showToast(msg: "Errore durante l'iserimento, riprovare");
+                  }
+                }
+
+                
+
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+
+
+@override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white, // Aggiungi questa linea per impostare lo sfondo bianco
-      margin: EdgeInsets.all(8.0),
-      elevation: 4.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              'Ordine in data: ${ordine.data}',
-              style: const TextStyle(
-                color: Colors.orange,
-                fontWeight: FontWeight.bold,
-                fontSize: 18.0,
-              ),
-            ),
-            const SizedBox(height: 24.0),
-            Text(
-              'Descrizione: ${ordine.descrizione}',
-              style: const TextStyle(
-                fontSize: 18.0,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 8.0),
-            Text(
-              'Totale: ${ordine.totale} €',
-              style: const TextStyle(
-                fontSize: 18.0,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 8.0),
-            Text(
-              'Tipo: ${ordine.tipo}',
-              style: const TextStyle(
-                fontSize: 18.0,
-                color: Colors.black,
-              ),
-            ),
-            if (ordine.tipo == 'Servizio al Tavolo')
+    return GestureDetector(
+      onTap: () {
+        if (isStaff) {
+          _showOrdineDetails(context);
+        }
+      },
+      child: Card(
+        color: Colors.white,
+        margin: EdgeInsets.all(8.0),
+        elevation: 4.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
               Text(
-                'Tavolo: ${ordine.tavolo}',
+                'Ordine in data: ${ordine.data}',
+                style: const TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18.0,
+                ),
+              ),
+              const SizedBox(height: 24.0),
+              Text(
+                'Descrizione: ${ordine.descrizione}',
                 style: const TextStyle(
                   fontSize: 18.0,
                   color: Colors.black,
                 ),
               ),
-            if (ordine.tipo != 'Servizio al Tavolo')
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                  'Ora di ritiro: ${ordine.ora}',
-                    style: const TextStyle(
-                      fontSize: 18.0,
-                      color: Colors.black,
-                    ),
-                  ),
-                  Text(
-                    'Nome: ${ordine.nome}',
-                    style: const TextStyle(
-                      fontSize: 18.0,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8.0),
-                  Text(
-                    'Telefono: ${ordine.telefono}',
-                    style: const TextStyle(
-                      fontSize: 18.0,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 8.0),
+              Text(
+                'Totale: ${ordine.totale} €',
+                style: const TextStyle(
+                  fontSize: 18.0,
+                  color: Colors.black,
+                ),
               ),
-          ],
+              const SizedBox(height: 8.0),
+              Text(
+                'Tipo: ${ordine.tipo}',
+                style: const TextStyle(
+                  fontSize: 18.0,
+                  color: Colors.black,
+                ),
+              ),
+              if (ordine.tipo == 'Servizio al Tavolo')
+                Text(
+                  'Tavolo: ${ordine.tavolo}',
+                  style: const TextStyle(
+                    fontSize: 18.0,
+                    color: Colors.black,
+                  ),
+                ),
+              if (ordine.tipo != 'Servizio al Tavolo')
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Ora di ritiro: ${ordine.ora}',
+                      style: const TextStyle(
+                        fontSize: 18.0,
+                        color: Colors.black,
+                      ),
+                    ),
+                    Text(
+                      'Nome: ${ordine.nome}',
+                      style: const TextStyle(
+                        fontSize: 18.0,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(
+                      'Telefono: ${ordine.telefono}',
+                      style: const TextStyle(
+                        fontSize: 18.0,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );
