@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hot_slice_app/modifica_offerta_dialog.dart';
 import 'app_colors.dart';
 import 'carrello_model.dart';
 import 'carrello_provider.dart';
@@ -12,6 +13,7 @@ class DettagliProdotto extends StatefulWidget {
   final double prezzo;
   final String imageUrl;
   final String descrizione;
+  final VoidCallback onProductDeleted;
 
   const DettagliProdotto({
     Key? key,
@@ -19,6 +21,7 @@ class DettagliProdotto extends StatefulWidget {
     required this.prezzo,
     required this.imageUrl,
     required this.descrizione,
+    required this.onProductDeleted,
   }) : super(key: key);
 
   @override
@@ -132,8 +135,8 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
           await FirebaseFirestore.instance
           .collection('offerte').doc(doc.id).delete();
         }
-        Navigator.of(context).pushNamed(
-                            '/offerte');
+        widget.onProductDeleted(); // Chiamo la callback
+        Navigator.of(context).pop(); // Chiudo vista dettagli
         Fluttertoast.showToast(msg: 'Prodotto eliminato con successo');
       }
     } catch (e) {
@@ -141,6 +144,13 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
       Fluttertoast.showToast(msg: 'Si é verificato un errrore, si prega di riprovare');
     }
   } 
+
+  void _showModificaOffertaDialog(BuildContext context){
+    showDialog(
+      context: context, 
+      builder: (context)=>ModificaOffertaDialog(onOfferAdded: _eliminaProdotto),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -335,7 +345,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            // Azione per lo staff quando il prodotto è un'offerta
+                            
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.secondaryColor,
