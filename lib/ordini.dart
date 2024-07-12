@@ -15,6 +15,7 @@ class _OrdiniState extends State<Ordini> {
   String role = "";
   late Future<List<ItemOrdine>> ordiniList;
   bool isStaff = false;
+  bool isLoading = true; // Aggiunto per gestire il caricamento iniziale
   ButtonStyle selectedButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: Colors.blue, // button background color
   );
@@ -27,7 +28,7 @@ class _OrdiniState extends State<Ordini> {
     ordiniList = Future.value([]);
     _checkUserRole();
   }
-  
+
   void _checkUserRole() async {
     User? currentUser = auth.currentUser;
     if (currentUser != null) {
@@ -37,19 +38,20 @@ class _OrdiniState extends State<Ordini> {
         if (role == 'staff') {
           setState(() {
             isStaff = true;
-            ordiniList = _filterOrdini('Servizio al Tavolo');
           });
+          ordiniList = _filterOrdini('Servizio al Tavolo');
         }
       } else {
-        setState(() {
-          ordiniList = _loadOrdini(currentUser.uid);
-        });
+        ordiniList = _loadOrdini(currentUser.uid);
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Devi essere loggato per visualizzare gli ordini")));
     }
+    setState(() {
+      isLoading = false;
+    }); // Set isLoading to false once the user role is checked
   }
-  
+
   Future<List<ItemOrdine>> _loadOrdini(String userId) async {
     QuerySnapshot querySnapshot = await db.collection('ordini').where('userId', isEqualTo: userId).get();
     return querySnapshot.docs.map((doc) => ItemOrdine.fromDocument(doc)).toList();
@@ -65,19 +67,24 @@ class _OrdiniState extends State<Ordini> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white, // Sfondo bianco per l'Appbar
+        backgroundColor: Colors.white,
         title: Center(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            color: Colors.white, // Sfondo bianco per il container del titolo
+            color: Colors.white,
             child: const Text(
               'Ordini',
               style: TextStyle(
+                fontWeight: FontWeight.bold,
                 color: AppColors.primaryColor,
                 fontSize: 28.0,
-                fontWeight: FontWeight.bold, 
               ),
             ),
+          ),
+        ),
+        flexibleSpace: FlexibleSpaceBar(
+          background: Container(
+            color: Colors.white,
           ),
         ),
       ),
@@ -101,7 +108,7 @@ class _OrdiniState extends State<Ordini> {
                       shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
-                    child: Text('Al Tavolo'),
+                    child: const Text('Al Tavolo'),
                   ),
                   SizedBox(width: 20),
                   ElevatedButton(
@@ -116,15 +123,15 @@ class _OrdiniState extends State<Ordini> {
                       shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
-                    child: Text("D'Asporto"),
+                    child: const Text("D'Asporto"),
                   ),
                 ],
               ),
             if (isStaff) ...[
               SizedBox(height: 16),
               Divider(color: Colors.grey),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
                   'Ordini nelle ultime 24 ore',
                   style: TextStyle(
@@ -136,27 +143,29 @@ class _OrdiniState extends State<Ordini> {
               Divider(color: Colors.grey),
             ],
             Expanded(
-              child: FutureBuilder<List<ItemOrdine>>(
-                future: ordiniList,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Errore: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('Nessun ordine effettuato'));
-                  } else {
-                    final ordini = snapshot.data!;
-                    return ListView.builder(
-                      itemCount: ordini.length,
-                      itemBuilder: (context, index) {
-                        final ordine = ordini[index];
-                        return OrdineCard(ordine: ordine);
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : FutureBuilder<List<ItemOrdine>>(
+                      future: ordiniList,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Center(child: Text('Errore: ${snapshot.error}'));
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const Center(child: Text('Nessun ordine effettuato'));
+                        } else {
+                          final ordini = snapshot.data!;
+                          return ListView.builder(
+                            itemCount: ordini.length,
+                            itemBuilder: (context, index) {
+                              final ordine = ordini[index];
+                              return OrdineCard(ordine: ordine);
+                            },
+                          );
+                        }
                       },
-                    );
-                  }
-                },
-              ),
+                    ),
             ),
           ],
         ),
@@ -196,7 +205,7 @@ class ItemOrdine {
       data: doc['data'],
       descrizione: doc['descrizione'],
       stato: doc['stato'],
-      tavolo:doc['tavolo'],
+      tavolo: doc['tavolo'],
       tipo: doc['tipo'],
       totale: doc['totale'],
       nome: doc['nome'],
@@ -214,6 +223,7 @@ class OrdineCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.white, // Aggiungi questa linea per impostare lo sfondo bianco
       margin: EdgeInsets.all(8.0),
       elevation: 4.0,
       shape: RoundedRectangleBorder(
@@ -227,8 +237,8 @@ class OrdineCard extends StatelessWidget {
             Text(
               'Ordine in data: ${ordine.data}',
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
                 color: Colors.orange,
+                fontWeight: FontWeight.bold,
                 fontSize: 18.0,
               ),
             ),
@@ -236,16 +246,14 @@ class OrdineCard extends StatelessWidget {
             Text(
               'Descrizione: ${ordine.descrizione}',
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
                 fontSize: 18.0,
                 color: Colors.black,
               ),
             ),
             const SizedBox(height: 8.0),
             Text(
-              'Totale: ${ordine.totale}',
+              'Totale: ${ordine.totale} €',
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
                 fontSize: 18.0,
                 color: Colors.black,
               ),
@@ -254,57 +262,46 @@ class OrdineCard extends StatelessWidget {
             Text(
               'Tipo: ${ordine.tipo}',
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
                 fontSize: 18.0,
                 color: Colors.black,
               ),
             ),
-            const SizedBox(height: 8.0),
             if (ordine.tipo == 'Servizio al Tavolo')
               Text(
-                'Tavolo: ${ordine.tavolo}', // Update with actual table info if available
+                'Tavolo: ${ordine.tavolo}',
                 style: const TextStyle(
-                fontWeight: FontWeight.bold,
                   fontSize: 18.0,
                   color: Colors.black,
                 ),
               ),
-            if (ordine.tipo == "Servizio d'Asporto")
-              Text(
-                'Ora di ritiro: ${ordine.ora}', // Update with actual pickup time if available
-                style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                  fontSize: 18.0,
-                  color: Colors.black,
-                ),
+            if (ordine.tipo != 'Servizio al Tavolo')
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                  'Ora di ritiro: ${ordine.ora}',
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Text(
+                    'Nome: ${ordine.nome}',
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Telefono: ${ordine.telefono}',
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
               ),
-            const SizedBox(height: 8.0),
-            Text(
-              'Nome: ${ordine.nome}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18.0,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 8.0),
-            Text(
-              'Telefono: ${ordine.telefono}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18.0,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 20.0),
-            Text(
-              'Stato: ${ordine.stato}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16.0,
-                color: Colors.black,
-              ),
-            ),
           ],
         ),
       ),
