@@ -189,15 +189,7 @@ class Carrello extends StatelessWidget {
                       builder: (buildcontext) {
                         return const CreaOrdineDialog();
                       },
-                    ).then((value) {
-                      // Mostra lo Snackbar dopo che il dialogo è stato chiuso
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Ordine effettuato!'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    });
+                    );
                   }
                 },
                 child: const Text("Procedi con l'ordine!",
