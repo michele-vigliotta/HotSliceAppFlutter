@@ -297,7 +297,6 @@ class OrdineCard extends StatelessWidget {
 
 void _showOrdineDetails(BuildContext context) {
   int _selectedOrderAction = 0; // 0: Accetta, 1: Rifiuta
-  TextEditingController _pickupTimeController = TextEditingController();
   TimeOfDay? selectedTime;
   TextEditingController oraController = TextEditingController();
 
@@ -316,6 +315,9 @@ void _showOrdineDetails(BuildContext context) {
                   Radio<int>(
                     value: 0,
                     groupValue: _selectedOrderAction,
+                    activeColor: AppColors.primaryColor,
+                    fillColor: MaterialStateColor.resolveWith(
+                    (states) => AppColors.primaryColor),
                     onChanged: (value) {
                       _selectedOrderAction = value!;
                       // Trigger rebuild of dialog
@@ -330,6 +332,9 @@ void _showOrdineDetails(BuildContext context) {
                   Radio<int>(
                     value: 1,
                     groupValue: _selectedOrderAction,
+                    activeColor: AppColors.primaryColor,
+                    fillColor: MaterialStateColor.resolveWith(
+                    (states) => AppColors.primaryColor),
                     onChanged: (value) {
                       _selectedOrderAction = value!;
                       // Trigger rebuild of dialog
@@ -389,13 +394,15 @@ void _showOrdineDetails(BuildContext context) {
           ),
           actions: [
             TextButton(
-              child: Text('Annulla'),
+              child: Text('Annulla',
+              style: TextStyle(color: AppColors.primaryColor),),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Conferma'),
+              child: Text('Conferma',
+              style: TextStyle(color: AppColors.primaryColor),),
               onPressed: () async {
                 
               
@@ -405,7 +412,7 @@ void _showOrdineDetails(BuildContext context) {
                   CollectionReference ordini = FirebaseFirestore.instance.collection('ordini');
                   if (ordine.tipo == "Servizio d'Asporto"){ //asporto
                       
-                    if (oraController.text == null || oraController.text.isEmpty) {
+                    if (oraController.text == '' || oraController.text.isEmpty) {
                         Fluttertoast.showToast(msg: "Inserisci l'orario di ritiro");
                         return null;
                     } 
