@@ -9,19 +9,19 @@ import 'carrello_provider.dart';
 import 'package:provider/provider.dart';
 
 class DettagliProdotto extends StatefulWidget {
-  final String nome;
-  final double prezzo;
-  final String imageUrl;
-  final String descrizione;
-  final VoidCallback onProductDeleted;
+  late  String nome;
+  late  double prezzo;
+  late  String imageUrl;
+  late  String descrizione;
+  final VoidCallback onProductEdited;
 
-  const DettagliProdotto({
+  DettagliProdotto({
     Key? key,
     required this.nome,
     required this.prezzo,
     required this.imageUrl,
     required this.descrizione,
-    required this.onProductDeleted,
+    required this.onProductEdited,
   }) : super(key: key);
 
   @override
@@ -135,7 +135,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
           await FirebaseFirestore.instance
           .collection('offerte').doc(doc.id).delete();
         }
-        widget.onProductDeleted(); // Chiamo la callback
+        widget.onProductEdited(); // Chiamo la callback
         Navigator.of(context).pop(); // Chiudo vista dettagli
         Fluttertoast.showToast(msg: 'Prodotto eliminato con successo');
       }
@@ -148,9 +148,40 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
   void _showModificaOffertaDialog(BuildContext context){
     showDialog(
       context: context, 
-      builder: (context)=>ModificaOffertaDialog(onOfferAdded: _eliminaProdotto),
+      builder: (context)=>ModificaOffertaDialog(nome: widget.nome,
+      descrizione: widget.descrizione,
+      prezzo: widget.prezzo,
+      imageUrl: widget.imageUrl,
+      onOfferEdited: _onOfferEdited),
     );
   }
+
+  void _onOfferEdited() async {
+  try {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('offerte')
+        .where('nome', isEqualTo: widget.nome)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      // Aggiorna i dati della vista con i dati dell'offerta
+      DocumentSnapshot doc = querySnapshot.docs.first;
+      setState(() {
+        widget.nome = doc['nome'];
+        widget.prezzo = doc['prezzo'];
+        widget.descrizione = doc['descrizione'];
+        widget.imageUrl = doc['foto'];
+      });
+
+      Fluttertoast.showToast(msg: 'Offerta aggiornata con successo');
+    } else {
+      Fluttertoast.showToast(msg: 'Nessuna offerta trovata');
+    }
+  } catch (e) {
+    print('Errore durante l\'aggiornamento dell\'offerta: $e');
+    Fluttertoast.showToast(msg: 'Si è verificato un errore, si prega di riprovare');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -345,7 +376,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            
+                            _showModificaOffertaDialog(context);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.secondaryColor,

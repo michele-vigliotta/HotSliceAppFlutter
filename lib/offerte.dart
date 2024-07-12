@@ -111,7 +111,7 @@ class _OfferteState extends State<Offerte> {
                                   prezzo: offer.prezzo,
                                   imageUrl: offer.imageUrl,
                                   descrizione: offer.descrizione,
-                                  onProductDeleted: _fetchDataFromFirebase,
+                                  onProductEdited: _fetchDataFromFirebase,
                                 ),
                               ),
                             );

@@ -95,7 +95,7 @@ class GenericList extends StatelessWidget {
                           prezzo: item['prezzo']?.toDouble() ?? 0.0,
                           imageUrl: imageUrl,
                           descrizione: item['descrizione'] ?? 'No description available',
-                          onProductDeleted: () {
+                          onProductEdited: () {
                             
                           },
                         ),

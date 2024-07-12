@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class ModificaOffertaDialog extends StatefulWidget {
-  final Function onOfferAdded;
+  final String nome;
+  final String descrizione;
+  final double prezzo;
+  final String imageUrl;
+  final Function onOfferEdited;
 
-  ModificaOffertaDialog({required this.onOfferAdded});
+  ModificaOffertaDialog({
+    required this.nome,
+    required this.descrizione,
+    required this.prezzo,
+    required this.imageUrl,
+    required this.onOfferEdited,
+  });
 
   @override
   _ModificaOffertaDialogState createState() => _ModificaOffertaDialogState();
@@ -21,8 +32,17 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
   bool _isUploading = false;
   String? _uploadedImageUrl;
 
+  @override
+  void initState() {
+    super.initState();
+    _nomeController.text = widget.nome;
+    _descrizioneController.text = widget.descrizione;
+    _prezzoController.text = widget.prezzo.toString();
+  }
+
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       setState(() {
@@ -41,7 +61,8 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
 
     try {
       String fileName = 'images/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      UploadTask uploadTask = FirebaseStorage.instance.ref(fileName).putFile(_imageFile!);
+      UploadTask uploadTask =
+          FirebaseStorage.instance.ref(fileName).putFile(_imageFile!);
 
       TaskSnapshot snapshot = await uploadTask;
       String downloadUrl = await snapshot.ref.getDownloadURL();
@@ -51,40 +72,62 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
         _isUploading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Immagine caricata con successo')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Immagine caricata con successo')));
     } catch (e) {
       setState(() {
         _isUploading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore durante il caricamento dell\'immagine')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Errore durante il caricamento dell\'immagine')));
     }
   }
 
-  Future<void> _addOffer() async {
+  Future<void> _updateOffer() async {
     String nome = _nomeController.text;
     String descrizione = _descrizioneController.text;
     String prezzo = _prezzoController.text;
 
-    if (nome.isEmpty || descrizione.isEmpty || prezzo.isEmpty || _uploadedImageUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Compilare tutti i campi')));
+    if (nome.isEmpty || descrizione.isEmpty || prezzo.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Compilare tutti i campi')));
       return;
     }
 
     double prezzoNum = double.parse(prezzo);
 
-    Map<String, dynamic> newOffer = {
+    Map<String, dynamic> updatedOffer = {
       'nome': nome,
       'prezzo': prezzoNum,
       'descrizione': descrizione,
-      'foto': _uploadedImageUrl,
+      'foto': _uploadedImageUrl ??
+          widget.imageUrl, // Usa l'immagine caricata o quella esistente
     };
 
-    await FirebaseFirestore.instance.collection('offerte').add(newOffer);
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('offerte')
+          .where('nome', isEqualTo: widget.nome)
+          .get();
 
-    widget.onOfferAdded();
+      if (querySnapshot.docs.isNotEmpty) {
+        for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+          await FirebaseFirestore.instance
+              .collection('offerte')
+              .doc(doc.id)
+              .update(updatedOffer);
+        }
 
-    Navigator.of(context).pop();
+        widget.onOfferEdited();
+        Navigator.of(context).pop();
+        Fluttertoast.showToast(msg: 'Offerta aggiornata con successo');
+      }
+    } catch (e) {
+      print('Errore durante l\'aggiornamento dell\'offerta: $e');
+      Fluttertoast.showToast(
+          msg: 'Si è verificato un errore, si prega di riprovare');
+    }
   }
 
   @override
@@ -95,9 +138,12 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: _nomeController,
-              decoration: InputDecoration(labelText: 'Nome'),
+            Text(
+              widget.nome,
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold
+              ),
             ),
             TextField(
               controller: _descrizioneController,
@@ -110,16 +156,25 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
             ),
             SizedBox(height: 16),
             _imageFile == null
-                ? Text('Nessuna immagine selezionata')
-                : Image.file(_imageFile!),
-            SizedBox(height: 8),
+                ? Column(
+                    children: [
+                      Image.network(widget.imageUrl,
+                          height: 100), // Mostra l'immagine corrente
+                      SizedBox(height: 8),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      Image.file(_imageFile!,
+                          height: 100), // Mostra l'immagine selezionata
+                      SizedBox(height: 8),
+                    ],
+                  ),
             ElevatedButton(
               onPressed: _isUploading ? null : _pickImage,
-              child: Text('Seleziona Immagine'),
+              child: Text('Cambia immagine'),
             ),
-            _isUploading
-                ? CircularProgressIndicator()
-                : SizedBox.shrink(),
+            _isUploading ? CircularProgressIndicator() : SizedBox.shrink(),
           ],
         ),
       ),
@@ -129,8 +184,8 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
           child: Text('Annulla'),
         ),
         ElevatedButton(
-          onPressed: _isUploading ? null : _addOffer,
-          child: Text('Aggiungi'),
+          onPressed: _isUploading ? null : _updateOffer,
+          child: Text('Aggiorna'),
         ),
       ],
     );
