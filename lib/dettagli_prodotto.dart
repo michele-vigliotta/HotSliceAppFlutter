@@ -113,12 +113,13 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
         actions: <Widget>[
           TextButton(onPressed: () {
                 Navigator.of(context).pop();
-              }, child: Text('Annulla'),),
+              }, child: Text('Annulla',style: TextStyle(color: AppColors.primaryColor),),
+              ),
           TextButton(onPressed: (){
             _eliminaProdotto();
             Navigator.of(context).pop();
 
-          }, child:  Text('Prosegui'),)
+          }, child:  Text('Prosegui',style: TextStyle(color: AppColors.primaryColor),),)
         ],
       );
     });

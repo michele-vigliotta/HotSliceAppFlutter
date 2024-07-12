@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hot_slice_app/app_colors.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -25,12 +26,19 @@ class ModificaOffertaDialog extends StatefulWidget {
 }
 
 class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
+  
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _descrizioneController = TextEditingController();
   final TextEditingController _prezzoController = TextEditingController();
+  
+  final FocusNode _descrizioneFocusNode = FocusNode();
+  final FocusNode _prezzoFocusNode = FocusNode();
+
   File? _imageFile;
   bool _isUploading = false;
   String? _uploadedImageUrl;
+
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -72,28 +80,28 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
         _isUploading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Immagine caricata con successo')));
+      Fluttertoast.showToast(msg:'Immagine caricata con successo');
     } catch (e) {
       setState(() {
         _isUploading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Errore durante il caricamento dell\'immagine')));
+      Fluttertoast.showToast(msg:'Errore durante il caricamneto dell\'immagine');
     }
   }
 
   Future<void> _updateOffer() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+
+
     String nome = _nomeController.text;
     String descrizione = _descrizioneController.text;
     String prezzo = _prezzoController.text;
 
-    if (nome.isEmpty || descrizione.isEmpty || prezzo.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Compilare tutti i campi')));
-      return;
-    }
+    
 
     double prezzoNum = double.parse(prezzo);
 
@@ -133,60 +141,119 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Modifica Offerta'),
+      title: Center(
+        child: Text(
+          'Modifica Offerta',
+          style: TextStyle(color: AppColors.primaryColor),
+        ),
+      ),
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              widget.nome,
-              style: TextStyle(
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.nome,
+                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
               ),
-            ),
-            TextField(
-              controller: _descrizioneController,
-              decoration: InputDecoration(labelText: 'Descrizione'),
-            ),
-            TextField(
-              controller: _prezzoController,
-              decoration: InputDecoration(labelText: 'Prezzo'),
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 16),
-            _imageFile == null
-                ? Column(
-                    children: [
-                      Image.network(widget.imageUrl,
-                          height: 100), // Mostra l'immagine corrente
-                      SizedBox(height: 8),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      Image.file(_imageFile!,
-                          height: 100), // Mostra l'immagine selezionata
-                      SizedBox(height: 8),
-                    ],
+              TextFormField(
+                controller: _descrizioneController,
+                focusNode: _descrizioneFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Descrizione',
+                  labelStyle: TextStyle(color: AppColors.myGrey),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.secondaryColor),
                   ),
-            ElevatedButton(
-              onPressed: _isUploading ? null : _pickImage,
-              child: Text('Cambia immagine'),
-            ),
-            _isUploading ? CircularProgressIndicator() : SizedBox.shrink(),
-          ],
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.secondaryColor),
+                  ),
+                ),
+                textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(_prezzoFocusNode);
+                      },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                            return 'Inserisci una descrizione';
+                }
+                return null;
+                }
+              ),
+              TextFormField(
+                controller: _prezzoController,
+                focusNode: _prezzoFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Prezzo',
+                  labelStyle: TextStyle(color: AppColors.myGrey),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.secondaryColor),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.secondaryColor),
+                  ),
+                ),
+                textInputAction: TextInputAction.done,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                            return 'Inserisci un prezzo';
+                }
+                return null;
+                },
+                keyboardType: TextInputType.number,
+              ),
+              SizedBox(height: 16),
+              _imageFile == null
+                  ? Column(
+                      children: [
+                        Image.network(widget.imageUrl,
+                            height: 150), // Mostra l'immagine corrente
+                        SizedBox(height: 8),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        Image.file(_imageFile!,
+                            height: 150), // Mostra l'immagine selezionata
+                        SizedBox(height: 8),
+                      ],
+                    ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.secondaryColor,
+                ),
+                onPressed: _isUploading ? null : _pickImage,
+                child: Text(
+                  'Cambia immagine',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+              _isUploading ? CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+              ) : SizedBox.shrink(),
+            ],
+          ),
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text('Annulla'),
-        ),
-        ElevatedButton(
-          onPressed: _isUploading ? null : _updateOffer,
-          child: Text('Aggiorna'),
-        ),
+        Center(
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          TextButton(
+            onPressed: _isUploading ? null : () => Navigator.of(context).pop(),
+            child: Text(
+              'Annulla',
+              style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
+            ),
+          ),
+          TextButton(
+            onPressed: _isUploading ? null : _updateOffer,
+            child: Text(
+              'Aggiorna',
+              style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
+            ),
+          ),
+        ]))
       ],
     );
   }

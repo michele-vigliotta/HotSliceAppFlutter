@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hot_slice_app/app_colors.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -17,12 +19,20 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _descrizioneController = TextEditingController();
   final TextEditingController _prezzoController = TextEditingController();
+
+  final FocusNode _nomeFocusNode = FocusNode();
+  final FocusNode _descrizioneFocusNode = FocusNode();
+  final FocusNode _prezzoFocusNode = FocusNode();
+
   File? _imageFile;
   bool _isUploading = false;
   String? _uploadedImageUrl;
 
+  final _formKey = GlobalKey<FormState>();
+
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       setState(() {
@@ -41,7 +51,8 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
 
     try {
       String fileName = 'images/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      UploadTask uploadTask = FirebaseStorage.instance.ref(fileName).putFile(_imageFile!);
+      UploadTask uploadTask =
+          FirebaseStorage.instance.ref(fileName).putFile(_imageFile!);
 
       TaskSnapshot snapshot = await uploadTask;
       String downloadUrl = await snapshot.ref.getDownloadURL();
@@ -50,26 +61,23 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
         _uploadedImageUrl = downloadUrl;
         _isUploading = false;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Immagine caricata con successo')));
+      Fluttertoast.showToast(msg: 'Immagine caricata con successo');
     } catch (e) {
       setState(() {
         _isUploading = false;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore durante il caricamento dell\'immagine')));
+      Fluttertoast.showToast(msg: 'Immagine caricata con successo');
     }
   }
 
   Future<void> _addOffer() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     String nome = _nomeController.text;
     String descrizione = _descrizioneController.text;
     String prezzo = _prezzoController.text;
-
-    if (nome.isEmpty || descrizione.isEmpty || prezzo.isEmpty || _uploadedImageUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Compilare tutti i campi')));
-      return;
-    }
 
     double prezzoNum = double.parse(prezzo);
 
@@ -90,48 +98,120 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Nuova Offerta'),
+      title: Center(
+        child: Text(
+          'Nuova Offerta',
+          style: TextStyle(color: AppColors.primaryColor),
+        ),
+      ),
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _nomeController,
-              decoration: InputDecoration(labelText: 'Nome'),
-            ),
-            TextField(
-              controller: _descrizioneController,
-              decoration: InputDecoration(labelText: 'Descrizione'),
-            ),
-            TextField(
-              controller: _prezzoController,
-              decoration: InputDecoration(labelText: 'Prezzo'),
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 16),
-            _imageFile == null
-                ? Text('Nessuna immagine selezionata')
-                : Image.file(_imageFile!),
-            SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: _isUploading ? null : _pickImage,
-              child: Text('Seleziona Immagine'),
-            ),
-            _isUploading
-                ? CircularProgressIndicator()
-                : SizedBox.shrink(),
-          ],
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nomeController,
+                focusNode: _nomeFocusNode,
+                decoration: InputDecoration(labelText: 'Nome',
+                labelStyle: TextStyle(color: AppColors.myGrey),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.secondaryColor),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.secondaryColor),
+                  ),),
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_descrizioneFocusNode);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Inserisci una descrizione';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                  controller: _descrizioneController,
+                  focusNode: _descrizioneFocusNode,
+                  decoration: InputDecoration(labelText: 'Descrizione',
+                  labelStyle: TextStyle(color: AppColors.myGrey),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.secondaryColor),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.secondaryColor),
+                  ),),
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) {
+                    FocusScope.of(context).requestFocus(_prezzoFocusNode);
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Inserisci una descrizione';
+                    }
+                    return null;
+                  }),
+              TextFormField(
+                controller: _prezzoController,
+                focusNode: _prezzoFocusNode,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Inserisci un prezzo';
+                  }
+                  return null;
+                },
+                decoration: InputDecoration(labelText: 'Prezzo',
+                labelStyle: TextStyle(color: AppColors.myGrey),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.secondaryColor),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.secondaryColor),
+                  ),),
+                textInputAction: TextInputAction.done,
+                keyboardType: TextInputType.number,
+              ),
+              SizedBox(height: 16),
+              _imageFile == null
+                  ? Text('Nessuna immagine selezionata'
+                  )
+                  : Image.file(_imageFile!, height: 150),
+              SizedBox(height: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.secondaryColor,
+                ),
+                onPressed: _isUploading ? null : _pickImage,
+                child: Text('Seleziona Immagine',
+                style: TextStyle(color: Colors.black)),
+              ),
+              _isUploading ? CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+              ) : SizedBox.shrink(),
+            ],
+          ),
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text('Annulla'),
-        ),
-        ElevatedButton(
-          onPressed: _isUploading ? null : _addOffer,
-          child: Text('Aggiungi'),
-        ),
+        Center(
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          TextButton(
+            onPressed: _isUploading ? null : () => Navigator.of(context).pop(),
+            child: Text(
+              'Annulla',
+              style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
+            ),
+          ),
+          TextButton(
+            onPressed: _isUploading ? null : _addOffer,
+            child: Text(
+              'Aggiorna',
+              style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
+            ),
+          ),
+        ]))
       ],
     );
   }
