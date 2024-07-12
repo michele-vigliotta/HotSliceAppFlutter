@@ -29,11 +29,13 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
   bool isStaff = false;
   bool isOfferta = false;
   final TextEditingController _controller = TextEditingController();
+  late Future<void> _initializeDataFuture;
 
   @override
   void initState() {
     super.initState();
     _controller.text = '$_quantita';
+    _initializeDataFuture = _initializeData();
   }
 
   Future<void> _initializeData() async {
@@ -49,7 +51,9 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
           await FirebaseFirestore.instance.doc(path).get();
       if (snapshot.exists) {
         if (snapshot.get('role') == 'staff') {
-          isStaff = true;
+          setState(() {
+            isStaff = true;
+          });
         }
       }
     } catch (e) {
@@ -64,7 +68,9 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
           .where('nome', isEqualTo: widget.nome)
           .get();
       if (querySnapshot.docs.isNotEmpty) {
-        isOfferta = true;
+        setState(() {
+          isOfferta = true;
+        });
       }
     } catch (e) {
       print('Errore durante la verifica del documento in offerte: $e');
@@ -104,8 +110,8 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
           backgroundColor: AppColors.primaryColor,
         ),
       ),
-      body: FutureBuilder(
-        future: _initializeData(),
+      body: FutureBuilder<void>(
+        future: _initializeDataFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -287,7 +293,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            
+                            // Azione per lo staff quando il prodotto è un'offerta
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.secondaryColor,
@@ -304,7 +310,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                         const SizedBox(height: 8.0),
                         ElevatedButton(
                           onPressed: () {
-                            
+                            // Azione per lo staff quando il prodotto è un'offerta
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.secondaryColor,
