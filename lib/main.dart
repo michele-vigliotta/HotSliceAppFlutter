@@ -4,6 +4,7 @@ import 'package:hot_slice_app/app_colors.dart';
 import 'package:hot_slice_app/carrello_provider.dart';
 import 'package:hot_slice_app/login.dart'; // Importa la tua pagina di login
 import 'package:hot_slice_app/main_page.dart'; // Importa la tua MainPage
+import 'package:hot_slice_app/offerte.dart';
 import 'package:hot_slice_app/register.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
         '/container': (context) =>
             MainPage(), // Aggiorna con la tua route per la MainPage
         '/register': (context) => RegisterPage(),
+        '/offerte' : (context) => Offerte(),
       },
     );
   }

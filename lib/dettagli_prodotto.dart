@@ -1,23 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hot_slice_app/modifica_offerta_dialog.dart';
 import 'app_colors.dart';
 import 'carrello_model.dart';
 import 'carrello_provider.dart';
 import 'package:provider/provider.dart';
 
 class DettagliProdotto extends StatefulWidget {
-  final String nome;
-  final double prezzo;
-  final String imageUrl;
-  final String descrizione;
+  late  String nome;
+  late  double prezzo;
+  late  String imageUrl;
+  late  String descrizione;
+  final VoidCallback onProductEdited;
 
-  const DettagliProdotto({
+  DettagliProdotto({
     Key? key,
     required this.nome,
     required this.prezzo,
     required this.imageUrl,
     required this.descrizione,
+    required this.onProductEdited,
   }) : super(key: key);
 
   @override
@@ -99,6 +103,85 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
       _controller.text = '$_quantita';
     });
   }
+
+  void _showEliminaConfermaDialog(BuildContext context) {
+    showDialog(context: context, 
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Conferma Eliminazione'),
+        content: Text('Sei sicuro di voler eliminare questo prodotto?'),
+        actions: <Widget>[
+          TextButton(onPressed: () {
+                Navigator.of(context).pop();
+              }, child: Text('Annulla'),),
+          TextButton(onPressed: (){
+            _eliminaProdotto();
+            Navigator.of(context).pop();
+
+          }, child:  Text('Prosegui'),)
+        ],
+      );
+    });
+  }
+
+  Future<void> _eliminaProdotto() async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('offerte')
+          .where('nome', isEqualTo: widget.nome)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        for (QueryDocumentSnapshot doc in querySnapshot.docs){
+          await FirebaseFirestore.instance
+          .collection('offerte').doc(doc.id).delete();
+        }
+        widget.onProductEdited(); // Chiamo la callback
+        Navigator.of(context).pop(); // Chiudo vista dettagli
+        Fluttertoast.showToast(msg: 'Prodotto eliminato con successo');
+      }
+    } catch (e) {
+      print('Errore durante la verifica del documento in offerte: $e');
+      Fluttertoast.showToast(msg: 'Si é verificato un errrore, si prega di riprovare');
+    }
+  } 
+
+  void _showModificaOffertaDialog(BuildContext context){
+    showDialog(
+      context: context, 
+      builder: (context)=>ModificaOffertaDialog(nome: widget.nome,
+      descrizione: widget.descrizione,
+      prezzo: widget.prezzo,
+      imageUrl: widget.imageUrl,
+      onOfferEdited: _onOfferEdited),
+    );
+  }
+
+  void _onOfferEdited() async {
+  try {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('offerte')
+        .where('nome', isEqualTo: widget.nome)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      // Aggiorna i dati della vista con i dati dell'offerta
+      DocumentSnapshot doc = querySnapshot.docs.first;
+      setState(() {
+        widget.nome = doc['nome'];
+        widget.prezzo = doc['prezzo'];
+        widget.descrizione = doc['descrizione'];
+        widget.imageUrl = doc['foto'];
+      });
+
+      Fluttertoast.showToast(msg: 'Offerta aggiornata con successo');
+    } else {
+      Fluttertoast.showToast(msg: 'Nessuna offerta trovata');
+    }
+  } catch (e) {
+    print('Errore durante l\'aggiornamento dell\'offerta: $e');
+    Fluttertoast.showToast(msg: 'Si è verificato un errore, si prega di riprovare');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -293,7 +376,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            // Azione per lo staff quando il prodotto è un'offerta
+                            _showModificaOffertaDialog(context);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.secondaryColor,
@@ -310,8 +393,9 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                         const SizedBox(height: 8.0),
                         ElevatedButton(
                           onPressed: () {
-                            // Azione per lo staff quando il prodotto è un'offerta
-                          },
+                            _showEliminaConfermaDialog(context);
+                            
+                            },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.secondaryColor,
                             fixedSize: const Size(220.0, 50.0),
