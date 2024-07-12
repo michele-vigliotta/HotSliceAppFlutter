@@ -63,8 +63,23 @@ class _OrdiniState extends State<Ordini> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Ordini'),
+        backgroundColor: Colors.white, // Sfondo bianco per l'Appbar
+        title: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            color: Colors.white, // Sfondo bianco per il container del titolo
+            child: const Text(
+              'Ordini',
+              style: TextStyle(
+                color: AppColors.primaryColor,
+                fontSize: 28.0,
+                fontWeight: FontWeight.bold, 
+              ),
+            ),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -129,7 +144,7 @@ class _OrdiniState extends State<Ordini> {
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Errore: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('Nessun ordine trovato'));
+                    return const Center(child: Text('Nessun ordine effettuato'));
                   } else {
                     final ordini = snapshot.data!;
                     return ListView.builder(

@@ -17,14 +17,14 @@ class Carrello extends StatelessWidget {
         backgroundColor: Colors.white, // Sfondo bianco per l'Appbar
         title: Center(
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
             color: Colors.white, // Sfondo bianco per il container del titolo
-            child: Text(
+            child: const Text(
               'Carrello',
               style: TextStyle(
                 color: AppColors.primaryColor,
-                fontSize: 28.0, // Dimensione del carattere aumentata
-                fontWeight: FontWeight.bold, // Testo in grassetto
+                fontSize: 28.0, 
+                fontWeight: FontWeight.bold, 
               ),
             ),
           ),

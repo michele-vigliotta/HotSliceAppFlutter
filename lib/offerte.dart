@@ -66,19 +66,23 @@ class _OfferteState extends State<Offerte> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+     backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
-        title: const Text(
-          'Offerte',
-          style: TextStyle(
-            fontSize: 30,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        backgroundColor: Colors.white, // Sfondo bianco per l'Appbar
+        title: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            color: Colors.white, // Sfondo bianco per il container del titolo
+            child: const Text(
+              'Offerte',
+              style: TextStyle(
+                color: AppColors.primaryColor,
+                fontSize: 28.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-          textAlign: TextAlign.center,
         ),
-        centerTitle: true,
       ),
       body: _isLoading
           ? const Center(
@@ -91,16 +95,6 @@ class _OfferteState extends State<Offerte> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Center(
-                    child: Text(
-                      'Offerte',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 16),
                   Expanded(
                     child: ListView.builder(

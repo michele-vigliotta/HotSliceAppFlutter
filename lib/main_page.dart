@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'home.dart';
 import 'offerte.dart';
-import 'preferiti.dart';
 import 'ordini.dart';
 import 'carrello.dart';
 
@@ -29,7 +28,6 @@ class _MainPageState extends State<MainPage> {
   List<Widget> _pages = <Widget>[
     const Home(),
     Offerte(),
-    const Preferiti(),
     const Carrello(),
     Ordini(),
   ];
@@ -59,10 +57,6 @@ class _MainPageState extends State<MainPage> {
           BottomNavigationBarItem(
             label: 'Offerte', 
             icon: Icon(Icons.celebration),
-          ),
-          BottomNavigationBarItem(
-            label: 'Preferiti', 
-            icon: Icon(Icons.favorite),
           ),
           BottomNavigationBarItem(
             label: 'Carrello', 
