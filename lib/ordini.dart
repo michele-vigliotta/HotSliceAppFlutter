@@ -420,7 +420,7 @@ void _showOrdineDetails(BuildContext context) {
                   await ordini.doc(ordine.id).update({
                     
                   'stato': 'Accettato',
-                  'ora di ritiro': oraController.text,
+                  'ora': oraController.text,
                   });
                   
                   }
