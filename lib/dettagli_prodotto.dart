@@ -133,7 +133,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
           .collection('offerte').doc(doc.id).delete();
         }
         Navigator.of(context).pushNamed(
-                            '/container');
+                            '/offerte');
         Fluttertoast.showToast(msg: 'Prodotto eliminato con successo');
       }
     } catch (e) {
