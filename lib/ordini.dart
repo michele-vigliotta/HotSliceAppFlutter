@@ -171,8 +171,6 @@ class _OrdiniState extends State<Ordini> {
               Divider(color: Colors.grey),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
                   'Ordini nelle ultime 24 ore',
                   style: TextStyle(
@@ -319,7 +317,6 @@ class OrdineCard extends StatelessWidget {
             if (ordine.tipo == 'Servizio al Tavolo')
               Text(
                 'Tavolo: ${ordine.tavolo}',
-                'Tavolo: ${ordine.tavolo}',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18.0,
@@ -347,6 +344,14 @@ class OrdineCard extends StatelessWidget {
                   const SizedBox(height: 8.0),
                   Text(
                     'Telefono: ${ordine.telefono}',
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Stato: ${ordine.stato}',
                     style: const TextStyle(
                       fontSize: 18.0,
                       color: Colors.black,
