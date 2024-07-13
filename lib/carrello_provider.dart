@@ -71,9 +71,12 @@ class CarrelloProvider extends ChangeNotifier{
     for (CarrelloModel prodotto in _listaCarrello){
       descrizione += "Nome: ${prodotto.name}, Quantità: ${prodotto.quantity};\n";
     }
+    int timestamp = DateTime.now().millisecondsSinceEpoch;
     
+
     try{
       Map<String, dynamic> documento = {
+        'id': '${user!.uid}_${timestamp}',
         'data': data,
         'descrizione': descrizione,
         'nome': nuovoOrdine.nome,

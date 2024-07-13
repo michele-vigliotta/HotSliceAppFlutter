@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hot_slice_app/no_internet_scaffold.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'app_colors.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -20,6 +24,40 @@ class _RegisterPageState extends State<RegisterPage> {
   final FocusNode _confirmPasswordFocusNode = FocusNode();
 
   bool _isLoading = false;
+
+  bool isConnectedToInternet = true;
+  StreamSubscription? _internetConnectionSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _internetConnectionSubscription =
+        InternetConnection().onStatusChange.listen((event) {
+      switch (event) {
+        case InternetStatus.connected:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+        case InternetStatus.disconnected:
+          setState(() {
+            isConnectedToInternet = false;
+          });
+          break;
+        default:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+      }
+    });
+  }
+
+   @override
+  void dispose() {
+    _internetConnectionSubscription?.cancel();
+    super.dispose();
+  }
 
   void _register() async {
     setState(() {
@@ -86,7 +124,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    Widget LoginScaffold = Scaffold(
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(16.0),
@@ -284,5 +322,7 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
+
+    return isConnectedToInternet ? LoginScaffold : NoInternetScaffold();
   }
 }

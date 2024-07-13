@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
         '/container': (context) =>
             MainPage(), // Aggiorna con la tua route per la MainPage
         '/register': (context) => RegisterPage(),
-        '/offerte' : (context) => Offerte(),
+        '/offerte': (context) => Offerte(),
       },
     );
   }
@@ -78,11 +78,11 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Implementa uno splash screen personalizzato o uno schermo di caricamento qui
     return const Scaffold(
       body: Center(
-        child:
-            CircularProgressIndicator(), // Esempio di indicatore di caricamento
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+        ), 
       ),
     );
   }

@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hot_slice_app/modifica_offerta_dialog.dart';
+import 'package:hot_slice_app/no_internet_scaffold.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'app_colors.dart';
 import 'carrello_model.dart';
 import 'carrello_provider.dart';
@@ -35,11 +39,40 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
   final TextEditingController _controller = TextEditingController();
   late Future<void> _initializeDataFuture;
 
+  bool isConnectedToInternet = true;
+  StreamSubscription? _internetConnectionSubscription;
+
   @override
   void initState() {
     super.initState();
+    _internetConnectionSubscription =
+        InternetConnection().onStatusChange.listen((event) {
+      switch (event) {
+        case InternetStatus.connected:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+        case InternetStatus.disconnected:
+          setState(() {
+            isConnectedToInternet = false;
+          });
+          break;
+        default:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+      }
+    });
     _controller.text = '$_quantita';
     _initializeDataFuture = _initializeData();
+  }
+
+   @override
+  void dispose() {
+    _internetConnectionSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _initializeData() async {
@@ -204,7 +237,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    Widget DettagliScaffold = Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0), // Altezza personalizzata della AppBar
@@ -443,5 +476,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
         },
       ),
     );
+
+    return isConnectedToInternet ? DettagliScaffold : NoInternetScaffold();
   }
 }
