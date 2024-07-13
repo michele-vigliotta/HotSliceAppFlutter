@@ -8,10 +8,17 @@ import 'package:hot_slice_app/offerte.dart';
 import 'package:hot_slice_app/register.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // Inizializza Firebase
+
+  // Imposta l'orientamento verticale
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => CarrelloProvider(),
