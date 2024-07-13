@@ -46,9 +46,22 @@ dependencies:
   image_picker: ^1.1.2
 
 dev_dependencies:
+
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: "^0.9.2"
 
+flutter_launcher_icons:
+  image_path_android: "images/pizzalogin.png"  # Icona per Android
+  image_path_ios: "images/pizzalogin.png" # Icona per iOS
+  android: true  # Abilita la generazione dell'icona per Android
+  ios: true  # Abilita la generazione dell'icona per iOS
+  adaptive_icon_background: "images/pizzalogin.png"  # Sfondo per icona adattiva (Android 8.0+)
+  adaptive_icon_foreground: "images/pizzalogin.png"  # Primo piano per icona adattiva (Android 8.0+)
+  adaptive_icon_monochrome: "images/pizzalogin.png"  # Monocromatica per Android 13+
+  min_sdk_android: 21  # Minimo SDK per Android
+  remove_alpha_ios: true  # Rimuovi il canale alpha per icone iOS
+  background_color_ios: "#F9576A"  # Colore di sfondo per iOS
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -69,7 +82,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-   - images/
+   - images/pizzalogin.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
