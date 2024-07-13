@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -5,6 +7,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hot_slice_app/app_colors.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class NewOfferDialog extends StatefulWidget {
   final Function onOfferAdded;
@@ -28,7 +32,41 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
   bool _isUploading = false;
   String? _uploadedImageUrl;
 
+  bool isConnectedToInternet = true;
+  StreamSubscription? _internetConnectionSubscription;
+
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _internetConnectionSubscription =
+        InternetConnection().onStatusChange.listen((event) {
+      switch (event) {
+        case InternetStatus.connected:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+        case InternetStatus.disconnected:
+          setState(() {
+            isConnectedToInternet = false;
+          });
+          break;
+        default:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _internetConnectionSubscription?.cancel();
+    super.dispose();
+  }
 
   Future<void> _pickImage() async {
     final pickedFile =
@@ -110,6 +148,13 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // Chiudi il dialogo se non c'è connessione internet
+  if (!isConnectedToInternet) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(context).pop();
+    });
+  }
+
     return AlertDialog(
       title: Center(
         child: Text(

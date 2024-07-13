@@ -136,39 +136,52 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
     });
   }
 
-  void _showEliminaConfermaDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Conferma Eliminazione'),
-          content: const Text('Sei sicuro di voler eliminare questo prodotto?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Annulla',
-                style: TextStyle(color: AppColors.primaryColor),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                _eliminaProdotto();
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Prosegui',
-                style: TextStyle(color: AppColors.primaryColor),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+void _showEliminaConfermaDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StreamBuilder<InternetStatus>(
+        stream: InternetConnection().onStatusChange,
+        builder: (context, snapshot) {
+          if (snapshot.data == InternetStatus.disconnected) {
+            // Chiudi il dialog 
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context).pop();
+              
+            });
+            return Container(); // Ritorna un container vuoto se disconnesso
+          } else {
+            return AlertDialog(
+              title: const Text('Conferma Eliminazione'),
+              content: const Text('Sei sicuro di voler eliminare questo prodotto?'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Annulla',
+                    style: TextStyle(color: AppColors.primaryColor),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _eliminaProdotto();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Prosegui',
+                    style: TextStyle(color: AppColors.primaryColor),
+                  ),
+                ),
+              ],
+            );
+          }
+        },
+      );
+    },
+  );
+}
   Future<void> _eliminaProdotto() async {
     try {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
