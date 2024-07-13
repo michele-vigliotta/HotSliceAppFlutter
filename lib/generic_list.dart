@@ -131,7 +131,7 @@ class GenericList extends StatelessWidget {
                                     imageUrl,
                                     width: 120.0,
                                     height: 100.0,
-                                    fit: BoxFit.cover,
+                                    fit: BoxFit.contain,
                                     errorBuilder: (context, error, stackTrace) {
                                       return Container(
                                         width: 120.0,
