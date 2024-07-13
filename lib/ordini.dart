@@ -280,12 +280,13 @@ class ItemOrdine {
 
 
   String get formattedData {
-    DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm');
     return formatter.format(dataOrdine); // Cambiato da 'dataOrdine' a 'data'
   }
 }
 
 
+// ignore: must_be_immutable
 class OrdineCard extends StatelessWidget {
   final ItemOrdine ordine;
   final bool isStaff;
@@ -394,14 +395,14 @@ void _showOrdineDetails(BuildContext context) {
           ),
           actions: [
             TextButton(
-              child: Text('Annulla',
+              child: const Text('Annulla',
               style: TextStyle(color: AppColors.primaryColor),),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Conferma',
+              child: const Text('Conferma',
               style: TextStyle(color: AppColors.primaryColor),),
               onPressed: () async {
                 
@@ -414,7 +415,7 @@ void _showOrdineDetails(BuildContext context) {
                       
                     if (oraController.text == '' || oraController.text.isEmpty) {
                         Fluttertoast.showToast(msg: "Inserisci l'orario di ritiro");
-                        return null;
+                        return;
                     } 
                 
                   await ordini.doc(ordine.id).update({
@@ -522,13 +523,50 @@ void _showOrdineDetails(BuildContext context) {
                 ),
               ),
               const SizedBox(height: 8.0),
-              Text(
-                'Stato: ${ordine.stato}',
-                style: const TextStyle(
-                  fontSize: 18.0,
-                  color: Colors.black,
+              Row(
+              children: [
+                Text(
+                  'Stato: ${ordine.stato}',
+                  style: const TextStyle(
+                    fontSize: 18.0,
+                    color: Colors.black,
+                  ),
                 ),
-              ),
+                if (ordine.stato == 'in corso')
+                  Row(
+                    children: [
+                      SizedBox(width: 8.0),
+                      Image.asset(
+                        'images/clessidra.png',
+                        height: 18.0,
+                        width: 18.0,
+                      ),
+                    ],
+                  ),
+                if (ordine.stato == 'Accettato')
+                  Row(
+                    children: [
+                      SizedBox(width: 8.0),
+                      Image.asset(
+                        'images/accettato.png',
+                        height: 18.0,
+                        width: 18.0,
+                      ),
+                    ],
+                  ),
+                if (ordine.stato == 'Rifiutato')
+                  Row(
+                    children: [
+                      SizedBox(width: 8.0),
+                      Image.asset(
+                        'images/rifiutato.png',
+                        height: 18.0,
+                        width: 18.0,
+                      ),
+                    ],
+                  ),
+              ],
+            ),
               if (ordine.tipo == 'Servizio al Tavolo')
                 Text(
                   'Tavolo: ${ordine.tavolo}',
