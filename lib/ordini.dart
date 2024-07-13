@@ -459,7 +459,7 @@ class OrdineCard extends StatelessWidget {
                       'stato': 'Rifiutato',
                     });
                     aggiorna();
-                    Fluttertoast.showToast(msg: "Ordine Accettato");
+                    Fluttertoast.showToast(msg: "Ordine Rifiutato");
                   } catch (e) {
                     Fluttertoast.showToast(
                         msg: "Errore durante l'iserimento, riprovare");
