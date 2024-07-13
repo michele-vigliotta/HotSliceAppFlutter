@@ -557,7 +557,7 @@ void _showOrdineDetails(BuildContext context) {
                 if (ordine.stato == 'Rifiutato')
                   Row(
                     children: [
-                      SizedBox(width: 8.0),
+                      SizedBox(width: 10.0),
                       Image.asset(
                         'images/rifiutato.png',
                         height: 18.0,
@@ -571,6 +571,7 @@ void _showOrdineDetails(BuildContext context) {
                 Text(
                   'Tavolo: ${ordine.tavolo}',
                   style: const TextStyle(
+                    fontWeight: FontWeight.bold,
                     fontSize: 18.0,
                     color: Colors.black,
                   ),
@@ -582,34 +583,30 @@ void _showOrdineDetails(BuildContext context) {
                     Text(
                       'Ora di ritiro: ${ordine.ora}',
                       style: const TextStyle(
+                        fontWeight: FontWeight.bold,
                         fontSize: 18.0,
                         color: Colors.black,
                       ),
                     ),
-                    Text(
-                      'Nome: ${ordine.nome}',
-                      style: const TextStyle(
-                        fontSize: 18.0,
-                        color: Colors.black,
+                      if (isStaff)
+                        Text(
+                        'Nome: ${ordine.nome}',
+                        style: const TextStyle(
+                          fontSize: 18.0,
+                          color: Colors.black,
+                        ),
+                        ),
+                      if (isStaff)
+                        Text(
+                        'Telefono: ${ordine.telefono}',
+                        style: const TextStyle(
+                          fontSize: 18.0,
+                          color: Colors.black,
+                          ),
                       ),
-                    ),
-                    Text(
-                      'Telefono: ${ordine.telefono}',
-                      style: const TextStyle(
-                        fontSize: 18.0,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
+                   ],
                 ),
-                const SizedBox(height: 8.0),
-                Text(
-              'Stato: ${ordine.stato}',
-              style: const TextStyle(
-                fontSize: 16.0,
-                color: Colors.black,
-                ),
-              ),
+              
             ],
           ),
         ),
