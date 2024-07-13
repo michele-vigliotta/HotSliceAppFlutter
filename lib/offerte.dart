@@ -66,21 +66,26 @@ class _OfferteState extends State<Offerte> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     backgroundColor: Colors.white,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white, // Sfondo bianco per l'Appbar
+        backgroundColor: Colors.white,
         title: Center(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            color: Colors.white, // Sfondo bianco per il container del titolo
+            color: Colors.white,
             child: const Text(
               'Offerte',
               style: TextStyle(
+                fontWeight: FontWeight.bold,
                 color: AppColors.primaryColor,
                 fontSize: 28.0,
-                fontWeight: FontWeight.bold,
               ),
             ),
+          ),
+        ),
+        flexibleSpace: FlexibleSpaceBar(
+          background: Container(
+            color: Colors.white,
           ),
         ),
       ),
