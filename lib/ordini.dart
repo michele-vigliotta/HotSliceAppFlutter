@@ -407,10 +407,6 @@ class OrdineCard extends StatelessWidget {
             TextButton(
               child: const Text('Annulla',
               style: TextStyle(color: AppColors.primaryColor),),
-              child: Text(
-                'Annulla',
-                style: TextStyle(color: AppColors.primaryColor),
-              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
