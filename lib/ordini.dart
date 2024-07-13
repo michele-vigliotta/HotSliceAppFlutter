@@ -293,7 +293,7 @@ class ItemOrdine {
   }
 
   String get formattedData {
-    DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm');
     return formatter.format(dataOrdine); // Cambiato da 'dataOrdine' a 'data'
   }
 }
@@ -405,6 +405,8 @@ class OrdineCard extends StatelessWidget {
           ),
           actions: [
             TextButton(
+              child: const Text('Annulla',
+              style: TextStyle(color: AppColors.primaryColor),),
               child: Text(
                 'Annulla',
                 style: TextStyle(color: AppColors.primaryColor),
@@ -502,7 +504,7 @@ class OrdineCard extends StatelessWidget {
                 style: const TextStyle(
                   color: Colors.orange,
                   fontWeight: FontWeight.bold,
-                  fontSize: 18.0,
+                  fontSize: 16.0,
                 ),
               ),
               const SizedBox(height: 24.0),
@@ -530,17 +532,55 @@ class OrdineCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8.0),
-              Text(
-                'Stato: ${ordine.stato}',
-                style: const TextStyle(
-                  fontSize: 18.0,
-                  color: Colors.black,
+              Row(
+              children: [
+                Text(
+                  'Stato: ${ordine.stato}',
+                  style: const TextStyle(
+                    fontSize: 18.0,
+                    color: Colors.black,
+                  ),
                 ),
-              ),
+                if (ordine.stato == 'in corso')
+                  Row(
+                    children: [
+                      SizedBox(width: 8.0),
+                      Image.asset(
+                        'images/clessidra.png',
+                        height: 18.0,
+                        width: 18.0,
+                      ),
+                    ],
+                  ),
+                if (ordine.stato == 'Accettato')
+                  Row(
+                    children: [
+                      SizedBox(width: 8.0),
+                      Image.asset(
+                        'images/accettato.png',
+                        height: 18.0,
+                        width: 18.0,
+                      ),
+                    ],
+                  ),
+                if (ordine.stato == 'Rifiutato')
+                  Row(
+                    children: [
+                      SizedBox(width: 10.0),
+                      Image.asset(
+                        'images/rifiutato.png',
+                        height: 18.0,
+                        width: 18.0,
+                      ),
+                    ],
+                  ),
+              ],
+            ),
               if (ordine.tipo == 'Servizio al Tavolo')
                 Text(
                   'Tavolo: ${ordine.tavolo}',
                   style: const TextStyle(
+                    fontWeight: FontWeight.bold,
                     fontSize: 18.0,
                     color: Colors.black,
                   ),
@@ -552,27 +592,30 @@ class OrdineCard extends StatelessWidget {
                     Text(
                       'Ora di ritiro: ${ordine.ora}',
                       style: const TextStyle(
+                        fontWeight: FontWeight.bold,
                         fontSize: 18.0,
                         color: Colors.black,
                       ),
                     ),
-                    Text(
-                      'Nome: ${ordine.nome}',
-                      style: const TextStyle(
-                        fontSize: 18.0,
-                        color: Colors.black,
+                      if (isStaff)
+                        Text(
+                        'Nome: ${ordine.nome}',
+                        style: const TextStyle(
+                          fontSize: 18.0,
+                          color: Colors.black,
+                        ),
+                        ),
+                      if (isStaff)
+                        Text(
+                        'Telefono: ${ordine.telefono}',
+                        style: const TextStyle(
+                          fontSize: 18.0,
+                          color: Colors.black,
+                          ),
                       ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      'Telefono: ${ordine.telefono}',
-                      style: const TextStyle(
-                        fontSize: 18.0,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
+                   ],
                 ),
+              
             ],
           ),
         ),
