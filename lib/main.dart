@@ -8,10 +8,17 @@ import 'package:hot_slice_app/offerte.dart';
 import 'package:hot_slice_app/register.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // Inizializza Firebase
+
+  // Imposta l'orientamento verticale
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => CarrelloProvider(),
@@ -40,7 +47,7 @@ class MyApp extends StatelessWidget {
         '/container': (context) =>
             MainPage(), // Aggiorna con la tua route per la MainPage
         '/register': (context) => RegisterPage(),
-        '/offerte' : (context) => Offerte(),
+        '/offerte': (context) => Offerte(),
       },
     );
   }
@@ -78,11 +85,11 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Implementa uno splash screen personalizzato o uno schermo di caricamento qui
     return const Scaffold(
       body: Center(
-        child:
-            CircularProgressIndicator(), // Esempio di indicatore di caricamento
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+        ), 
       ),
     );
   }

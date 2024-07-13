@@ -1,4 +1,5 @@
 class OrdineModel {
+  final String id;
   final String data;
   final String descrizione;
   final String nome;
@@ -10,6 +11,7 @@ class OrdineModel {
   final String totale;
 
   OrdineModel({
+    this.id = '',
     this.data = '',
     this.descrizione = '',
     this.nome = '',

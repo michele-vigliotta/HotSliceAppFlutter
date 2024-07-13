@@ -173,7 +173,7 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
                 borderSide: BorderSide(color: AppColors.secondaryColor),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.yellow),
+                borderSide: BorderSide(color: AppColors.secondaryColor),
               ),
             ),
             keyboardType: TextInputType.number,

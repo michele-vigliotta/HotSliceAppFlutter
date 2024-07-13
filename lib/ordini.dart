@@ -32,9 +32,10 @@ class _OrdiniState extends State<Ordini> {
   }
 
   void _checkUserRole() async {
-      User? currentUser = auth.currentUser;
+    User? currentUser = auth.currentUser;
     if (currentUser != null) {
-      DocumentSnapshot userDoc = await db.collection('users').doc(currentUser.uid).get();
+      DocumentSnapshot userDoc =
+          await db.collection('users').doc(currentUser.uid).get();
       if (userDoc.exists) {
         role = userDoc['role'];
         if (role == 'staff') {
@@ -47,72 +48,66 @@ class _OrdiniState extends State<Ordini> {
         ordiniList = _loadOrdini(currentUser.uid);
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Devi essere loggato per visualizzare gli ordini")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Devi essere loggato per visualizzare gli ordini")));
     }
     setState(() {
       isLoading = false;
-    }); 
-
+    });
   }
 
   Future<List<ItemOrdine>> _loadOrdini(String userId) async {
-  QuerySnapshot querySnapshot = await db.collection('ordini').where('userId', isEqualTo: userId).get();
- 
-  List<ItemOrdine> ordini = querySnapshot.docs.map((doc) {
-    Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
-    if (data != null && data.containsKey('data')) {
-      String dateString = data['data'];
-      DateTime dataOrdine = DateTime.parse(dateString); // Converti la stringa in DateTime
-      return ItemOrdine.fromDocument(doc, dataOrdine: dataOrdine);
-    } else {
-      // Handle the case where 'data' is missing or null
-      throw Exception("Missing or invalid 'data' field in Firestore document");
-    }
-  }).toList();
+    QuerySnapshot querySnapshot =
+        await db.collection('ordini').where('userId', isEqualTo: userId).get();
 
+    List<ItemOrdine> ordini = querySnapshot.docs.map((doc) {
+      Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+      if (data != null && data.containsKey('data')) {
+        String dateString = data['data'];
+        DateTime dataOrdine =
+            DateTime.parse(dateString); // Converti la stringa in DateTime
+        return ItemOrdine.fromDocument(doc, dataOrdine: dataOrdine);
+      } else {
+        // Handle the case where 'data' is missing or null
+        throw Exception(
+            "Missing or invalid 'data' field in Firestore document");
+      }
+    }).toList();
 
-  // Ordina gli ordini per dataOrdine, dal più recente al più vecchio
-  ordini.sort((a, b) => b.dataOrdine.compareTo(a.dataOrdine));
+    // Ordina gli ordini per dataOrdine, dal più recente al più vecchio
+    ordini.sort((a, b) => b.dataOrdine.compareTo(a.dataOrdine));
 
-
-  return ordini;
-}
-
-
-
+    return ordini;
+  }
 
   Future<List<ItemOrdine>> _filterOrdini(String tipo) async {
-  DateTime now = DateTime.now();
-  DateTime twentyFourHoursAgo = now.subtract(Duration(hours: 24));
+    DateTime now = DateTime.now();
+    DateTime twentyFourHoursAgo = now.subtract(Duration(hours: 24));
 
+    QuerySnapshot querySnapshot =
+        await db.collection('ordini').where('tipo', isEqualTo: tipo).get();
 
-  QuerySnapshot querySnapshot = await db.collection('ordini')
-      .where('tipo', isEqualTo: tipo)
-      .get();
+    List<ItemOrdine> ordini = querySnapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      DateTime dataOrdine = DateTime.parse(data['data']);
+      return ItemOrdine.fromDocument(doc, dataOrdine: dataOrdine);
+    }).toList();
 
+    List<ItemOrdine> ordiniFiltrati = ordini.where((ordine) {
+      return ordine.dataOrdine.isAfter(twentyFourHoursAgo);
+    }).toList();
 
-  List<ItemOrdine> ordini = querySnapshot.docs.map((doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    DateTime dataOrdine = DateTime.parse(data['data']);
-    return ItemOrdine.fromDocument(doc, dataOrdine: dataOrdine);
-  }).toList();
+    // Ordina gli ordini per data, dal più recente al più vecchio
+    ordiniFiltrati.sort((a, b) => b.dataOrdine.compareTo(a.dataOrdine));
 
+    return ordiniFiltrati;
+  }
 
-  List<ItemOrdine> ordiniFiltrati = ordini.where((ordine) {
-    return ordine.dataOrdine.isAfter(twentyFourHoursAgo);
-  }).toList();
-
-
-  // Ordina gli ordini per data, dal più recente al più vecchio
-  ordiniFiltrati.sort((a, b) => b.dataOrdine.compareTo(a.dataOrdine));
-
-
-  return ordiniFiltrati;
-}
-
-Future<void> _refreshOrdini() async {
+  Future<void> _refreshOrdini() async {
     if (isStaff) {
-      ordiniList = _filterOrdini(_selectedButtonIndex == 0 ? 'Servizio al Tavolo' : "Servizio d'Asporto");
+      ordiniList = _filterOrdini(_selectedButtonIndex == 0
+          ? 'Servizio al Tavolo'
+          : "Servizio d'Asporto");
     } else {
       User? currentUser = auth.currentUser;
       if (currentUser != null) {
@@ -121,7 +116,6 @@ Future<void> _refreshOrdini() async {
     }
     setState(() {}); // Trigger rebuild to refresh the UI
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +159,9 @@ Future<void> _refreshOrdini() async {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedButtonIndex == 0 ? AppColors.secondaryColor : AppColors.lightYellow,
+                      backgroundColor: _selectedButtonIndex == 0
+                          ? AppColors.secondaryColor
+                          : AppColors.lightYellow,
                       shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
@@ -180,7 +176,9 @@ Future<void> _refreshOrdini() async {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedButtonIndex == 1 ? AppColors.secondaryColor : AppColors.lightYellow,
+                      backgroundColor: _selectedButtonIndex == 1
+                          ? AppColors.secondaryColor
+                          : AppColors.lightYellow,
                       shadowColor: Colors.transparent,
                       foregroundColor: Colors.black,
                     ),
@@ -205,23 +203,40 @@ Future<void> _refreshOrdini() async {
             ],
             Expanded(
               child: isLoading
-                  ? Center(child: CircularProgressIndicator())
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primaryColor),
+                      ),
+                    )
                   : FutureBuilder<List<ItemOrdine>>(
                       future: ordiniList,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(
+                              child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primaryColor),
+                          ));
                         } else if (snapshot.hasError) {
-                          return Center(child: Text('Errore: ${snapshot.error}'));
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return const Center(child: Text('Nessun ordine effettuato'));
+                          return Center(
+                              child: Text('Errore: ${snapshot.error}'));
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const Center(
+                              child: Text('Nessun ordine effettuato'));
                         } else {
                           final ordini = snapshot.data!;
                           return ListView.builder(
                             itemCount: ordini.length,
                             itemBuilder: (context, index) {
                               final ordine = ordini[index];
-                              return OrdineCard(ordine: ordine, isStaff: isStaff, aggiorna: _refreshOrdini,);
+                              return OrdineCard(
+                                ordine: ordine,
+                                isStaff: isStaff,
+                                aggiorna: _refreshOrdini,
+                              );
                             },
                           );
                         }
@@ -247,7 +262,6 @@ class ItemOrdine {
   String ora;
   String telefono;
 
-
   ItemOrdine({
     required this.id,
     required this.dataOrdine,
@@ -261,8 +275,8 @@ class ItemOrdine {
     required this.telefono,
   });
 
-
-  factory ItemOrdine.fromDocument(DocumentSnapshot doc, {required DateTime dataOrdine}) {
+  factory ItemOrdine.fromDocument(DocumentSnapshot doc,
+      {required DateTime dataOrdine}) {
     final data = doc.data() as Map<String, dynamic>;
     return ItemOrdine(
       id: doc.id,
@@ -278,29 +292,26 @@ class ItemOrdine {
     );
   }
 
-
   String get formattedData {
-    DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm');
     return formatter.format(dataOrdine); // Cambiato da 'dataOrdine' a 'data'
   }
 }
-
 
 class OrdineCard extends StatelessWidget {
   final ItemOrdine ordine;
   final bool isStaff;
   Function aggiorna;
 
-  OrdineCard({required this.ordine,
-  required this.isStaff,
-  required this.aggiorna});
+  OrdineCard(
+      {required this.ordine, required this.isStaff, required this.aggiorna});
 
-void _showOrdineDetails(BuildContext context) {
-  int _selectedOrderAction = 0; // 0: Accetta, 1: Rifiuta
-  TimeOfDay? selectedTime;
-  TextEditingController oraController = TextEditingController();
+  void _showOrdineDetails(BuildContext context) {
+    int _selectedOrderAction = 0; // 0: Accetta, 1: Rifiuta
+    TimeOfDay? selectedTime;
+    TextEditingController oraController = TextEditingController();
 
-     showDialog(
+    showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -309,7 +320,6 @@ void _showOrdineDetails(BuildContext context) {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
               Row(
                 children: [
                   Radio<int>(
@@ -317,7 +327,7 @@ void _showOrdineDetails(BuildContext context) {
                     groupValue: _selectedOrderAction,
                     activeColor: AppColors.primaryColor,
                     fillColor: MaterialStateColor.resolveWith(
-                    (states) => AppColors.primaryColor),
+                        (states) => AppColors.primaryColor),
                     onChanged: (value) {
                       _selectedOrderAction = value!;
                       // Trigger rebuild of dialog
@@ -334,7 +344,7 @@ void _showOrdineDetails(BuildContext context) {
                     groupValue: _selectedOrderAction,
                     activeColor: AppColors.primaryColor,
                     fillColor: MaterialStateColor.resolveWith(
-                    (states) => AppColors.primaryColor),
+                        (states) => AppColors.primaryColor),
                     onChanged: (value) {
                       _selectedOrderAction = value!;
                       // Trigger rebuild of dialog
@@ -344,119 +354,117 @@ void _showOrdineDetails(BuildContext context) {
                   const Text('Rifiuta Ordine'),
                 ],
               ),
-              if (_selectedOrderAction == 0 && ordine.tipo == "Servizio d'Asporto")
+              if (_selectedOrderAction == 0 &&
+                  ordine.tipo == "Servizio d'Asporto")
                 TextFormField(
-                  onTap : () async {
+                  onTap: () async {
                     selectedTime = await showTimePicker(
-                      context: context, 
+                      context: context,
                       initialTime: TimeOfDay.now(),
                       builder: (BuildContext context, Widget? child) {
-                  return Theme(
-                      data: ThemeData.light().copyWith(
-                          colorScheme: const ColorScheme.light(
-                            primary: AppColors
-                                .primaryColor, // Colore principale del time picker
-                            onSurface: AppColors
-                                .secondaryColor, // Colore dei numeri e delle etichette
-                          ),
-                          buttonTheme: const ButtonThemeData(
-                            colorScheme: ColorScheme.light(
-                              primary: AppColors
-                                  .primaryColor, // Colore dei bottoni (OK e Cancel)
-                            ),
-                          ),
-                          timePickerTheme: const TimePickerThemeData(
-                            dialBackgroundColor:
-                                Color.fromARGB(255, 241, 241, 241),
-                          )),
-                      child: child!);
-                },
+                        return Theme(
+                            data: ThemeData.light().copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: AppColors
+                                      .primaryColor, // Colore principale del time picker
+                                  onSurface: AppColors
+                                      .secondaryColor, // Colore dei numeri e delle etichette
+                                ),
+                                buttonTheme: const ButtonThemeData(
+                                  colorScheme: ColorScheme.light(
+                                    primary: AppColors
+                                        .primaryColor, // Colore dei bottoni (OK e Cancel)
+                                  ),
+                                ),
+                                timePickerTheme: const TimePickerThemeData(
+                                  dialBackgroundColor:
+                                      Color.fromARGB(255, 241, 241, 241),
+                                )),
+                            child: child!);
+                      },
                     );
-                    
-                  if (selectedTime != null) {
-                oraController.text = selectedTime!.format(context);
-              }
-            },
-            controller: oraController,
-            decoration: const InputDecoration(
-              labelText: 'Ora',
-              labelStyle: TextStyle(color: AppColors.myGrey),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.secondaryColor),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.secondaryColor),
-              ),
-            ),
-            readOnly: true,
-          ),
+
+                    if (selectedTime != null) {
+                      oraController.text = selectedTime!.format(context);
+                    }
+                  },
+                  controller: oraController,
+                  decoration: const InputDecoration(
+                    labelText: 'Ora',
+                    labelStyle: TextStyle(color: AppColors.myGrey),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.secondaryColor),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.secondaryColor),
+                    ),
+                  ),
+                  readOnly: true,
+                ),
             ],
           ),
           actions: [
             TextButton(
-              child: Text('Annulla',
+              child: const Text('Annulla',
               style: TextStyle(color: AppColors.primaryColor),),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Conferma',
-              style: TextStyle(color: AppColors.primaryColor),),
+              child: Text(
+                'Conferma',
+                style: TextStyle(color: AppColors.primaryColor),
+              ),
               onPressed: () async {
-                
-              
-              
-              if (_selectedOrderAction == 0){ //accetta
-                try{
-                  CollectionReference ordini = FirebaseFirestore.instance.collection('ordini');
-                  if (ordine.tipo == "Servizio d'Asporto"){ //asporto
-                      
-                    if (oraController.text == '' || oraController.text.isEmpty) {
-                        Fluttertoast.showToast(msg: "Inserisci l'orario di ritiro");
+                if (_selectedOrderAction == 0) {
+                  //accetta
+                  try {
+                    CollectionReference ordini =
+                        FirebaseFirestore.instance.collection('ordini');
+                    if (ordine.tipo == "Servizio d'Asporto") {
+                      //asporto
+
+                      if (oraController.text == '' ||
+                          oraController.text.isEmpty) {
+                        Fluttertoast.showToast(
+                            msg: "Inserisci l'orario di ritiro");
                         return null;
-                    } 
-                
-                  await ordini.doc(ordine.id).update({
-                    
-                  'stato': 'Accettato',
-                  'ora': oraController.text,
-                  });
-                  
-                  }
-                  else{ //tavolo
-                    await ordini.doc(ordine.id).update({
-                    
-                  'stato': 'Accettato',});
-                  }
-                  aggiorna();
+                      }
 
-                  Fluttertoast.showToast(msg: "Ordine Accettato");
-                } catch (e) {
-                  Fluttertoast.showToast(msg: "Errore durante l'iserimento, riprovare");
-                  
-                  
-                }
-                }else{ //rifiuta
-                  try{
-                  CollectionReference ordini = FirebaseFirestore.instance.collection('ordini');
-                  
+                      await ordini.doc(ordine.id).update({
+                        'stato': 'Accettato',
+                        'ora': oraController.text,
+                      });
+                    } else {
+                      //tavolo
+                      await ordini.doc(ordine.id).update({
+                        'stato': 'Accettato',
+                      });
+                    }
+                    aggiorna();
 
-                
-                  await ordini.doc(ordine.id).update({
-                    
-                  'stato': 'Rifiutato',
-                  
-                  });
-                  aggiorna();
-                  Fluttertoast.showToast(msg: "Ordine Accettato");
+                    Fluttertoast.showToast(msg: "Ordine Accettato");
                   } catch (e) {
-                    Fluttertoast.showToast(msg: "Errore durante l'iserimento, riprovare");
-                    
+                    Fluttertoast.showToast(
+                        msg: "Errore durante l'iserimento, riprovare");
+                  }
+                } else {
+                  //rifiuta
+                  try {
+                    CollectionReference ordini =
+                        FirebaseFirestore.instance.collection('ordini');
+
+                    await ordini.doc(ordine.id).update({
+                      'stato': 'Rifiutato',
+                    });
+                    aggiorna();
+                    Fluttertoast.showToast(msg: "Ordine Rifiutato");
+                  } catch (e) {
+                    Fluttertoast.showToast(
+                        msg: "Errore durante l'iserimento, riprovare");
                   }
                 }
-
-                
 
                 Navigator.of(context).pop();
               },
@@ -466,10 +474,8 @@ void _showOrdineDetails(BuildContext context) {
       },
     );
   }
-  
 
-
-@override
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
@@ -521,10 +527,56 @@ void _showOrdineDetails(BuildContext context) {
                   color: Colors.black,
                 ),
               ),
+              const SizedBox(height: 8.0),
+              Row(
+              children: [
+                Text(
+                  'Stato: ${ordine.stato}',
+                  style: const TextStyle(
+                    fontSize: 18.0,
+                    color: Colors.black,
+                  ),
+                ),
+                if (ordine.stato == 'in corso')
+                  Row(
+                    children: [
+                      SizedBox(width: 8.0),
+                      Image.asset(
+                        'images/clessidra.png',
+                        height: 18.0,
+                        width: 18.0,
+                      ),
+                    ],
+                  ),
+                if (ordine.stato == 'Accettato')
+                  Row(
+                    children: [
+                      SizedBox(width: 8.0),
+                      Image.asset(
+                        'images/accettato.png',
+                        height: 18.0,
+                        width: 18.0,
+                      ),
+                    ],
+                  ),
+                if (ordine.stato == 'Rifiutato')
+                  Row(
+                    children: [
+                      SizedBox(width: 10.0),
+                      Image.asset(
+                        'images/rifiutato.png',
+                        height: 18.0,
+                        width: 18.0,
+                      ),
+                    ],
+                  ),
+              ],
+            ),
               if (ordine.tipo == 'Servizio al Tavolo')
                 Text(
                   'Tavolo: ${ordine.tavolo}',
                   style: const TextStyle(
+                    fontWeight: FontWeight.bold,
                     fontSize: 18.0,
                     color: Colors.black,
                   ),
@@ -536,34 +588,30 @@ void _showOrdineDetails(BuildContext context) {
                     Text(
                       'Ora di ritiro: ${ordine.ora}',
                       style: const TextStyle(
+                        fontWeight: FontWeight.bold,
                         fontSize: 18.0,
                         color: Colors.black,
                       ),
                     ),
-                    Text(
-                      'Nome: ${ordine.nome}',
-                      style: const TextStyle(
-                        fontSize: 18.0,
-                        color: Colors.black,
+                      if (isStaff)
+                        Text(
+                        'Nome: ${ordine.nome}',
+                        style: const TextStyle(
+                          fontSize: 18.0,
+                          color: Colors.black,
+                        ),
+                        ),
+                      if (isStaff)
+                        Text(
+                        'Telefono: ${ordine.telefono}',
+                        style: const TextStyle(
+                          fontSize: 18.0,
+                          color: Colors.black,
+                          ),
                       ),
-                    ),
-                    Text(
-                      'Telefono: ${ordine.telefono}',
-                      style: const TextStyle(
-                        fontSize: 18.0,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
+                   ],
                 ),
-                const SizedBox(height: 8.0),
-                Text(
-              'Stato: ${ordine.stato}',
-              style: const TextStyle(
-                fontSize: 16.0,
-                color: Colors.black,
-                ),
-              ),
+              
             ],
           ),
         ),
