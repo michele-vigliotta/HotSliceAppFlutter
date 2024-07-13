@@ -51,8 +51,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
     try {
       String userUid = FirebaseAuth.instance.currentUser!.uid;
       String path = 'users/$userUid';
-      DocumentSnapshot snapshot =
-          await FirebaseFirestore.instance.doc(path).get();
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance.doc(path).get();
       if (snapshot.exists) {
         if (snapshot.get('role') == 'staff') {
           setState(() {
@@ -182,7 +181,6 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        // Aggiorna i dati della vista con i dati dell'offerta
         DocumentSnapshot doc = querySnapshot.docs.first;
         setState(() {
           widget.nome = doc['nome'];
@@ -207,11 +205,11 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56.0), // Altezza personalizzata della AppBar
+        preferredSize: const Size.fromHeight(56.0),
         child: AppBar(
           backgroundColor: AppColors.primaryColor,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -280,27 +278,44 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                           Text(
                             widget.descrizione,
                             style: const TextStyle(
-                              fontSize: 16.0,
+                              fontSize: 18.0,
                             ),
                           ),
-                          const SizedBox(height: 16.0),
-                          Text(
-                            '€${widget.prezzo.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 20.0,
-                              color: AppColors.darkGrey,
+                          const SizedBox(height: 220.0),
+                          if (isStaff) // Prezzo in fondo per lo staff
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 20.0),
+                                child: Text(
+                                  '${widget.prezzo.toStringAsFixed(2)} €',
+                                  style: const TextStyle(
+                                    fontSize: 22.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkGrey,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),
                   ),
                 ),
-                if (!isStaff) // Mostra solo se l'utente NON è staff
+                if (!isStaff) // Prezzo sopra il contatore per i non staff
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
+                        Text(
+                          '${widget.prezzo.toStringAsFixed(2)} €',
+                          style: const TextStyle(
+                            fontSize: 22.0,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkGrey,
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -356,9 +371,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                         const SizedBox(height: 16.0),
                         ElevatedButton(
                           onPressed: () {
-                            // Aggiunge l'articolo al carrello
-                            Provider.of<CarrelloProvider>(context,
-                                    listen: false)
+                            Provider.of<CarrelloProvider>(context, listen: false)
                                 .addToCarrello(
                               CarrelloModel(
                                 name: widget.nome,
@@ -371,7 +384,6 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                             );
                             _aggiornaQuantita('0');
 
-                            // Mostra il messaggio "aggiunto al carrello"
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Aggiunto al carrello'),
@@ -395,7 +407,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                       ],
                     ),
                   ),
-                if (isStaff && isOfferta) // Mostra solo se l'utente è staff e il prodotto è un'offerta
+                if (isStaff && isOfferta) // Azioni per lo staff
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
