@@ -495,7 +495,7 @@ void _showOrdineDetails(BuildContext context) {
                 style: const TextStyle(
                   color: Colors.orange,
                   fontWeight: FontWeight.bold,
-                  fontSize: 18.0,
+                  fontSize: 16.0,
                 ),
               ),
               const SizedBox(height: 24.0),
@@ -593,7 +593,6 @@ void _showOrdineDetails(BuildContext context) {
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 8.0),
                     Text(
                       'Telefono: ${ordine.telefono}',
                       style: const TextStyle(
@@ -603,6 +602,14 @@ void _showOrdineDetails(BuildContext context) {
                     ),
                   ],
                 ),
+                const SizedBox(height: 8.0),
+                Text(
+              'Stato: ${ordine.stato}',
+              style: const TextStyle(
+                fontSize: 16.0,
+                color: Colors.black,
+                ),
+              ),
             ],
           ),
         ),

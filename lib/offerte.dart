@@ -206,12 +206,17 @@ class _OfferteState extends State<Offerte> {
               ),
             ),
       floatingActionButton: isStaff
-          ? FloatingActionButton(
-              onPressed: _showNewOfferDialog,
-              backgroundColor: AppColors.primaryColor,
-              child: const Icon(Icons.add),
-            )
-          : null,
+  ? FloatingActionButton(
+      onPressed: _showNewOfferDialog,
+      backgroundColor: AppColors.secondaryColor,
+      shape: const CircleBorder(),
+      child: const Icon(
+        Icons.add,
+        size: 48.0, 
+        color: Colors.white, 
+          ),
+        )
+      : null,
     );
   }
 }
