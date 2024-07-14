@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hot_slice_app/modifica_offerta_dialog.dart';
@@ -68,7 +70,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
     _initializeDataFuture = _initializeData();
   }
 
-  @override
+   @override
   void dispose() {
     _internetConnectionSubscription?.cancel();
     super.dispose();
@@ -135,52 +137,52 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
     });
   }
 
-  void _showEliminaConfermaDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StreamBuilder<InternetStatus>(
-          stream: InternetConnection().onStatusChange,
-          builder: (context, snapshot) {
-            if (snapshot.data == InternetStatus.disconnected) {
-              // Chiudi il dialog
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.of(context).pop();
-              });
-              return Container(); // Ritorna un container vuoto se disconnesso
-            } else {
-              return AlertDialog(
-                title: const Text('Conferma Eliminazione'),
-                content: const Text('Sei sicuro di voler eliminare questo prodotto?'),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      'Annulla',
-                      style: TextStyle(color: AppColors.primaryColor),
-                    ),
+void _showEliminaConfermaDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StreamBuilder<InternetStatus>(
+        stream: InternetConnection().onStatusChange,
+        builder: (context, snapshot) {
+          if (snapshot.data == InternetStatus.disconnected) {
+            // Chiudi il dialog 
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context).pop();
+              
+            });
+            return Container(); // Ritorna un container vuoto se disconnesso
+          } else {
+            return AlertDialog(
+              title: const Text('Conferma Eliminazione'),
+              content: const Text('Sei sicuro di voler eliminare questo prodotto?'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Annulla',
+                    style: TextStyle(color: AppColors.primaryColor),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      _eliminaProdotto();
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      'Prosegui',
-                      style: TextStyle(color: AppColors.primaryColor),
-                    ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _eliminaProdotto();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Prosegui',
+                    style: TextStyle(color: AppColors.primaryColor),
                   ),
-                ],
-              );
-            }
-          },
-        );
-      },
-    );
-  }
-
+                ),
+              ],
+            );
+          }
+        },
+      );
+    },
+  );
+}
   Future<void> _eliminaProdotto() async {
     try {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
@@ -218,6 +220,17 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
     );
   }
 
+  Future<String> _getImageUrl(String imageName) async {
+    try {
+      final Reference ref = FirebaseStorage.instance.ref().child(imageName);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print("Errore nel recupero dell'URL dell'immagine: $e");
+      return 'images/pizza_foto.png'; // URL immagine di default
+    }
+  }
+
+
   void _onOfferEdited() async {
     try {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
@@ -227,13 +240,15 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
 
       if (querySnapshot.docs.isNotEmpty) {
         DocumentSnapshot doc = querySnapshot.docs.first;
+        String urlFoto = await _getImageUrl(doc['foto']) ;
+
         setState(() {
           widget.nome = doc['nome'];
           widget.prezzo = doc['prezzo'];
           widget.descrizione = doc['descrizione'];
-          widget.imageUrl = doc['foto'];
+          widget.imageUrl = urlFoto;
         });
-
+        widget.onProductEdited();
         Fluttertoast.showToast(msg: 'Offerta aggiornata con successo');
       } else {
         Fluttertoast.showToast(msg: 'Nessuna offerta trovata');
@@ -312,12 +327,8 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
                                   width: double.infinity,
                                   fit: BoxFit.contain,
                                   errorBuilder: (context, error, stackTrace) {
-                                    return Image.asset(
-                                      'images/pizza_foto.png',
-                                      height: 200.0,
-                                      width: double.infinity,
-                                      fit: BoxFit.contain,
-                                    );
+                                    return Icon(Icons.error,
+                                        color: AppColors.primaryColor);
                                   },
                                 ),
                               ],
