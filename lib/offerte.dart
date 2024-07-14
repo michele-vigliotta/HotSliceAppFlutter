@@ -30,7 +30,8 @@ class _OfferteState extends State<Offerte> {
 
   Future<void> _checkUserRole() async {
     if (_currentUser != null) {
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(_currentUser!.uid).get();
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
         role = userDoc['role'];
         if (role == 'staff') {
@@ -44,9 +45,12 @@ class _OfferteState extends State<Offerte> {
 
   Future<void> _fetchDataFromFirebase() async {
     try {
-      QuerySnapshot querySnapshot = await _firestore.collection('offerte').get();
+      QuerySnapshot querySnapshot =
+          await _firestore.collection('offerte').get();
       setState(() {
-        _offerteList = querySnapshot.docs.map((doc) => GenericItem.fromDocument(doc)).toList();
+        _offerteList = querySnapshot.docs
+            .map((doc) => GenericItem.fromDocument(doc))
+            .toList();
         _isLoading = false;
       });
     } catch (e) {
@@ -66,7 +70,7 @@ class _OfferteState extends State<Offerte> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     backgroundColor: Colors.white,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white, // Sfondo bianco per l'Appbar
         title: Center(
@@ -106,12 +110,34 @@ class _OfferteState extends State<Offerte> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => DettagliProdotto(
-                                  nome: offer.nome,
-                                  prezzo: offer.prezzo,
-                                  imageUrl: offer.imageUrl,
-                                  descrizione: offer.descrizione,
-                                  onProductEdited: _fetchDataFromFirebase,
+                                builder: (context) => FutureBuilder<String>(
+                                  future: offer.imageUrl, // Utilizza il Future<String> qui
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  AppColors.primaryColor),
+                                        ),
+                                      );
+                                    } else if (snapshot.hasError) {
+                                      return Center(
+                                        child: Text(
+                                            'Errore durante il caricamento dell\'immagine.'),
+                                      );
+                                    } else {
+                                      // Quando il futuro è risolto, navighiamo a DettagliProdotto
+                                      return DettagliProdotto(
+                                        nome: offer.nome,
+                                        prezzo: offer.prezzo,
+                                        imageUrl: snapshot.data ?? '', // Passa l'URL risolto
+                                        descrizione: offer.descrizione,
+                                        onProductEdited: _fetchDataFromFirebase,
+                                      );
+                                    }
+                                  },
                                 ),
                               ),
                             );
@@ -133,26 +159,33 @@ class _OfferteState extends State<Offerte> {
                                     height: 100.0,
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(10.0),
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          const CircularProgressIndicator(
-                                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-                                          ),
-                                          Image.network(
-                                            offer.imageUrl,
+                                      child: FutureBuilder<String>(
+                                        future: offer.imageUrl,
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return Center(
+                                              child: CircularProgressIndicator(
+                                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                                              ),
+                                            );
+                                          }
+                                          if (snapshot.hasError) {
+                                            return Center(
+                                              child: Icon(Icons.error, color: AppColors.primaryColor),
+                                            );
+                                          }
+                                          final imageUrl = snapshot.data ?? ''; // Ottieni l'URL dall'oggetto Future<String>
+                                          return Image.network(
+                                            imageUrl,
                                             width: 120.0,
                                             height: 100.0,
                                             fit: BoxFit.cover,
                                             errorBuilder: (context, error, stackTrace) {
-                                              return Container(
-                                                width: 120.0,
-                                                height: 100.0,
-                                                child: Icon(Icons.error, color: AppColors.primaryColor),
-                                              );
+                                              return Icon(Icons.error, color: AppColors.primaryColor);
                                             },
-                                          ),
-                                        ],
+                                          );
+                                        },
                                       ),
                                     ),
                                   ),
@@ -206,17 +239,17 @@ class _OfferteState extends State<Offerte> {
               ),
             ),
       floatingActionButton: isStaff
-  ? FloatingActionButton(
-      onPressed: _showNewOfferDialog,
-      backgroundColor: AppColors.secondaryColor,
-      shape: const CircleBorder(),
-      child: const Icon(
-        Icons.add,
-        size: 48.0, 
-        color: Colors.white, 
-          ),
-        )
-      : null,
+          ? FloatingActionButton(
+              onPressed: _showNewOfferDialog,
+              backgroundColor: AppColors.secondaryColor,
+              shape: const CircleBorder(),
+              child: const Icon(
+                Icons.add,
+                size: 48.0,
+                color: Colors.white,
+              ),
+            )
+          : null,
     );
   }
 }
