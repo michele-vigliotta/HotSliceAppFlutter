@@ -86,7 +86,7 @@ class GenericList extends StatelessWidget {
                   );
                 }
 
-                final imageUrl = snapshot.data ?? 'https://example.com/default.png';
+                final imageUrl = snapshot.data ?? 'images/pizza_foto.png';
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
