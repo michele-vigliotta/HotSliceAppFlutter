@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:intl/intl.dart';
 import 'app_colors.dart';
 import 'ordini.dart'; 
-import 'ordine_dialog.dart';
+
 
 class OrdineDialog extends StatefulWidget {
   final ItemOrdine ordine;

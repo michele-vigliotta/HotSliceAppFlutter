@@ -175,19 +175,27 @@ class _OfferteState extends State<Offerte> {
                                               ),
                                             );
                                           }
-                                          if (snapshot.hasError) {
-                                            return Center(
-                                              child: Icon(Icons.error, color: AppColors.primaryColor),
+                                          if (snapshot.hasError || !snapshot.hasData) {
+                                            return Image.asset(
+                                              'images/pizza_foto.png',
+                                              width: 120.0,
+                                              height: 100.0,
+                                              fit: BoxFit.cover,
                                             );
                                           }
-                                          final imageUrl = snapshot.data ?? ''; // Ottieni l'URL dall'oggetto Future<String>
+                                          final imageUrl = snapshot.data!;
                                           return Image.network(
                                             imageUrl,
                                             width: 120.0,
                                             height: 100.0,
                                             fit: BoxFit.cover,
                                             errorBuilder: (context, error, stackTrace) {
-                                              return Icon(Icons.error, color: AppColors.primaryColor);
+                                              return Image.asset(
+                                                'images/pizza_foto.png',
+                                                width: 120.0,
+                                                height: 100.0,
+                                                fit: BoxFit.cover,
+                                              );
                                             },
                                           );
                                         },
