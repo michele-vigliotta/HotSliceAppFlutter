@@ -69,7 +69,7 @@ class CarrelloProvider extends ChangeNotifier{
     String descrizione = '';
     //CarrelloModel prodotto = CarrelloModel();
     for (CarrelloModel prodotto in _listaCarrello){
-      descrizione += "${prodotto.quantity} ${prodotto.name}; ";
+      descrizione += "Nome: ${prodotto.name}, Quantità: ${prodotto.quantity};\n";
     }
     
     int timestamp = DateTime.now().millisecondsSinceEpoch;
