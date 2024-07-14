@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -109,6 +108,11 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
 
   Future<void> _addOffer() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_imageFile == null) {
+      Fluttertoast.showToast(msg: 'Inserire una foto e attendere');
       return;
     }
 
@@ -277,7 +281,7 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
           TextButton(
             onPressed: _isUploading ? null : _addOffer,
             child: Text(
-              'Aggiorna',
+              'Aggiungi',
               style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
             ),
           ),
