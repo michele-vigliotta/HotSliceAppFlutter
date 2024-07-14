@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hot_slice_app/no_internet_scaffold.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'app_colors.dart';
