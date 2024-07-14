@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hot_slice_app/modifica_offerta_dialog.dart';
+import 'package:hot_slice_app/no_internet_scaffold.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'app_colors.dart';
 import 'carrello_model.dart';
 import 'carrello_provider.dart';
@@ -35,11 +39,40 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
   final TextEditingController _controller = TextEditingController();
   late Future<void> _initializeDataFuture;
 
+  bool isConnectedToInternet = true;
+  StreamSubscription? _internetConnectionSubscription;
+
   @override
   void initState() {
     super.initState();
+    _internetConnectionSubscription =
+        InternetConnection().onStatusChange.listen((event) {
+      switch (event) {
+        case InternetStatus.connected:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+        case InternetStatus.disconnected:
+          setState(() {
+            isConnectedToInternet = false;
+          });
+          break;
+        default:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+      }
+    });
     _controller.text = '$_quantita';
     _initializeDataFuture = _initializeData();
+  }
+
+   @override
+  void dispose() {
+    _internetConnectionSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _initializeData() async {
@@ -103,39 +136,52 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
     });
   }
 
-  void _showEliminaConfermaDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Conferma Eliminazione'),
-          content: const Text('Sei sicuro di voler eliminare questo prodotto?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Annulla',
-                style: TextStyle(color: AppColors.primaryColor),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                _eliminaProdotto();
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Prosegui',
-                style: TextStyle(color: AppColors.primaryColor),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+void _showEliminaConfermaDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StreamBuilder<InternetStatus>(
+        stream: InternetConnection().onStatusChange,
+        builder: (context, snapshot) {
+          if (snapshot.data == InternetStatus.disconnected) {
+            // Chiudi il dialog 
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context).pop();
+              
+            });
+            return Container(); // Ritorna un container vuoto se disconnesso
+          } else {
+            return AlertDialog(
+              title: const Text('Conferma Eliminazione'),
+              content: const Text('Sei sicuro di voler eliminare questo prodotto?'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Annulla',
+                    style: TextStyle(color: AppColors.primaryColor),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _eliminaProdotto();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Prosegui',
+                    style: TextStyle(color: AppColors.primaryColor),
+                  ),
+                ),
+              ],
+            );
+          }
+        },
+      );
+    },
+  );
+}
   Future<void> _eliminaProdotto() async {
     try {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
@@ -202,7 +248,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    Widget DettagliScaffold = Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
@@ -455,5 +501,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
         },
       ),
     );
+
+    return isConnectedToInternet ? DettagliScaffold : NoInternetScaffold();
   }
 }

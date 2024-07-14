@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hot_slice_app/no_internet_scaffold.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app_colors.dart';
 
@@ -23,10 +27,39 @@ class _LoginPageState extends State<LoginPage> {
   bool _rememberMe = false;
   bool _isLoading = false;
 
+  bool isConnectedToInternet = true;
+  StreamSubscription? _internetConnectionSubscription;
+
   @override
   void initState() {
     super.initState();
+    _internetConnectionSubscription =
+        InternetConnection().onStatusChange.listen((event) {
+      switch (event) {
+        case InternetStatus.connected:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+        case InternetStatus.disconnected:
+          setState(() {
+            isConnectedToInternet = false;
+          });
+          break;
+        default:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+      }
+    });
     _checkAutoLogin();
+  }
+
+  @override
+  void dispose() {
+    _internetConnectionSubscription?.cancel();
+    super.dispose();
   }
 
   void _checkAutoLogin() async {
@@ -112,7 +145,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    Widget LoginScaffold = Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(0.0), // Altezza personalizzata della AppBar
         child: AppBar(
@@ -297,5 +330,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+
+    return isConnectedToInternet ? LoginScaffold : NoInternetScaffold();
   }
 }
