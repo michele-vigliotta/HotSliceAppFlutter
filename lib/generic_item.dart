@@ -22,7 +22,7 @@ class GenericItem extends StatelessWidget {
       return await ref.getDownloadURL();
     } catch (e) {
       print('Errore nel recupero dell\'URL dell\'immagine: $e');
-      return 'https://example.com/default.png'; // URL immagine di default
+      return 'assets/images/pizza_foto.png'; // URL immagine di default
     }
   }
 
@@ -55,7 +55,7 @@ class GenericItem extends StatelessWidget {
             child: Icon(Icons.error, color: Colors.red),
           );
         }
-        final url = snapshot.data ?? 'https://example.com/default.png';
+        final url = snapshot.data ?? 'assets/images/pizza_foto.png';
         return Card(
           child: ListTile(
             leading: Image.network(url, width: 50, height: 50, fit: BoxFit.cover),

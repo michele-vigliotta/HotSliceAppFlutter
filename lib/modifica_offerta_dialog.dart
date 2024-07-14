@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -30,17 +29,16 @@ class ModificaOffertaDialog extends StatefulWidget {
 }
 
 class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
-  
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _descrizioneController = TextEditingController();
   final TextEditingController _prezzoController = TextEditingController();
-  
+
   final FocusNode _descrizioneFocusNode = FocusNode();
   final FocusNode _prezzoFocusNode = FocusNode();
 
   File? _imageFile;
   bool _isUploading = false;
-  String? _uploadedImageUrl;
+  String? _fileName; // Variabile per memorizzare il nome del file
 
   bool isConnectedToInternet = true;
   StreamSubscription? _internetConnectionSubscription;
@@ -75,7 +73,7 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
     _prezzoController.text = widget.prezzo.toString();
   }
 
-   @override
+  @override
   void dispose() {
     _internetConnectionSubscription?.cancel();
     super.dispose();
@@ -88,6 +86,7 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
+        _fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg'; // Imposta il nome del file senza prefisso
       });
       await _uploadImage(); // Carica l'immagine subito dopo averla selezionata
     }
@@ -101,25 +100,21 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
     });
 
     try {
-      String fileName = 'images/${DateTime.now().millisecondsSinceEpoch}.jpg';
       UploadTask uploadTask =
-          FirebaseStorage.instance.ref(fileName).putFile(_imageFile!);
+          FirebaseStorage.instance.ref(_fileName).putFile(_imageFile!); // Aggiungi il prefisso solo per l'upload
 
       TaskSnapshot snapshot = await uploadTask;
-      String downloadUrl = await snapshot.ref.getDownloadURL();
+      await snapshot.ref.getDownloadURL(); // Ottiene l'URL di download ma non lo salva
 
       setState(() {
-        _uploadedImageUrl = downloadUrl;
         _isUploading = false;
       });
-
-      Fluttertoast.showToast(msg:'Immagine caricata con successo');
+      Fluttertoast.showToast(msg: 'Immagine caricata con successo');
     } catch (e) {
       setState(() {
         _isUploading = false;
       });
-
-      Fluttertoast.showToast(msg:'Errore durante il caricamneto dell\'immagine');
+      Fluttertoast.showToast(msg: 'Errore nel caricamento dell\'immagine');
     }
   }
 
@@ -128,13 +123,9 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
       return;
     }
 
-
-
     String nome = _nomeController.text;
     String descrizione = _descrizioneController.text;
     String prezzo = _prezzoController.text;
-
-    
 
     double prezzoNum = double.parse(prezzo);
 
@@ -142,8 +133,7 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
       'nome': nome,
       'prezzo': prezzoNum,
       'descrizione': descrizione,
-      'foto': _uploadedImageUrl ??
-          widget.imageUrl, // Usa l'immagine caricata o quella esistente
+      'foto': _fileName ?? widget.imageUrl.split('/').last, // Usa il nome del file o l'ultima parte dell'URL esistente
     };
 
     try {
@@ -174,11 +164,11 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
   @override
   Widget build(BuildContext context) {
     // Chiudi il dialogo se non c'è connessione internet
-  if (!isConnectedToInternet) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.of(context).pop();
-    });
-  }
+    if (!isConnectedToInternet) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pop();
+      });
+    }
 
     return AlertDialog(
       title: Center(
@@ -211,15 +201,15 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
                   ),
                 ),
                 textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) {
-                        FocusScope.of(context).requestFocus(_prezzoFocusNode);
-                      },
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_prezzoFocusNode);
+                },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                            return 'Inserisci una descrizione';
-                }
-                return null;
-                }
+                    return 'Inserisci una descrizione';
+                  }
+                  return null;
+                },
               ),
               TextFormField(
                 controller: _prezzoController,
@@ -237,9 +227,9 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
                 textInputAction: TextInputAction.done,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                            return 'Inserisci un prezzo';
-                }
-                return null;
+                    return 'Inserisci un prezzo';
+                  }
+                  return null;
                 },
                 keyboardType: TextInputType.number,
               ),
@@ -269,16 +259,21 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
                   style: TextStyle(color: Colors.black),
                 ),
               ),
-              _isUploading ? CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-              ) : SizedBox.shrink(),
+              _isUploading
+                  ? CircularProgressIndicator(
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                    )
+                  : SizedBox.shrink(),
             ],
           ),
         ),
       ),
       actions: [
         Center(
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
           TextButton(
             onPressed: _isUploading ? null : () => Navigator.of(context).pop(),
             child: Text(

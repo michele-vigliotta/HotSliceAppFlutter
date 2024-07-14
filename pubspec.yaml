@@ -87,10 +87,11 @@ flutter:
   assets:
    - images/pizzalogin.png
    - images/
-  #   - images/a_dot_ham.jpeg
-  #   - images/clessidra
-  #   - images/accettato
-  #   - images/rifiutato
+  #   a_dot_ham.jpeg
+  #   clessidra
+  #   accettato
+  #   rifiutato
+  #   pizza_foto
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
