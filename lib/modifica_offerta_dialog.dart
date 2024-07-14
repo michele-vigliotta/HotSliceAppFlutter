@@ -80,86 +80,93 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+  final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-        _fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg'; // Imposta il nome del file senza prefisso
-      });
-      await _uploadImage(); // Carica l'immagine subito dopo averla selezionata
-    }
+  if (pickedFile != null) {
+    setState(() {
+      _imageFile = File(pickedFile.path);
+      _fileName = pickedFile.path.split('/').last; // Ottieni solo il nome del file
+    });
+    await _uploadImage(); // Carica l'immagine subito dopo averla selezionata
   }
+}
+
 
   Future<void> _uploadImage() async {
-    if (_imageFile == null) return;
+  if (_imageFile == null) return;
+
+  setState(() {
+    _isUploading = true;
+  });
+
+  try {
+    UploadTask uploadTask =
+        FirebaseStorage.instance.ref(_fileName!).putFile(_imageFile!);
+
+    TaskSnapshot snapshot = await uploadTask;
+    String downloadUrl = await snapshot.ref.getDownloadURL();
 
     setState(() {
-      _isUploading = true;
+      _isUploading = false;
     });
+    Fluttertoast.showToast(msg: 'Immagine caricata con successo');
+  } catch (e) {
+    setState(() {
+      _isUploading = false;
+    });
+    Fluttertoast.showToast(msg: 'Errore nel caricamento dell\'immagine');
+  }
+}
 
-    try {
-      UploadTask uploadTask =
-          FirebaseStorage.instance.ref(_fileName).putFile(_imageFile!); // Aggiungi il prefisso solo per l'upload
 
-      TaskSnapshot snapshot = await uploadTask;
-      await snapshot.ref.getDownloadURL(); // Ottiene l'URL di download ma non lo salva
-
-      setState(() {
-        _isUploading = false;
-      });
-      Fluttertoast.showToast(msg: 'Immagine caricata con successo');
-    } catch (e) {
-      setState(() {
-        _isUploading = false;
-      });
-      Fluttertoast.showToast(msg: 'Errore nel caricamento dell\'immagine');
-    }
+Future<void> _updateOffer() async {
+  if (!_formKey.currentState!.validate()) {
+    return;
   }
 
-  Future<void> _updateOffer() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+  String nome = _nomeController.text;
+  String descrizione = _descrizioneController.text;
+  String prezzo = _prezzoController.text;
 
-    String nome = _nomeController.text;
-    String descrizione = _descrizioneController.text;
-    String prezzo = _prezzoController.text;
+  double prezzoNum = double.parse(prezzo);
 
-    double prezzoNum = double.parse(prezzo);
+  // Estrae solo il nome del file dall'URL di Firebase
+  String foto = _imageFile == null
+      ? widget.imageUrl.split('/').last // Mantieni l'URL esistente
+      : _fileName!; // Ottieni solo il nome del file senza parametri
 
-    Map<String, dynamic> updatedOffer = {
-      'nome': nome,
-      'prezzo': prezzoNum,
-      'descrizione': descrizione,
-      'foto': _fileName ?? widget.imageUrl.split('/').last, // Usa il nome del file o l'ultima parte dell'URL esistente
-    };
+  Map<String, dynamic> updatedOffer = {
+    'nome': nome,
+    'prezzo': prezzoNum,
+    'descrizione': descrizione,
+    'foto': foto,
+  };
 
-    try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('offerte')
-          .where('nome', isEqualTo: widget.nome)
-          .get();
+  try {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('offerte')
+        .where('nome', isEqualTo: widget.nome)
+        .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        for (QueryDocumentSnapshot doc in querySnapshot.docs) {
-          await FirebaseFirestore.instance
-              .collection('offerte')
-              .doc(doc.id)
-              .update(updatedOffer);
-        }
-
-        widget.onOfferEdited();
-        Navigator.of(context).pop();
-        Fluttertoast.showToast(msg: 'Offerta aggiornata con successo');
+    if (querySnapshot.docs.isNotEmpty) {
+      for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+        await FirebaseFirestore.instance
+            .collection('offerte')
+            .doc(doc.id)
+            .update(updatedOffer);
       }
-    } catch (e) {
-      print('Errore durante l\'aggiornamento dell\'offerta: $e');
-      Fluttertoast.showToast(
-          msg: 'Si è verificato un errore, si prega di riprovare');
+
+      widget.onOfferEdited();
+      Navigator.of(context).pop();
+      Fluttertoast.showToast(msg: 'Offerta aggiornata con successo');
     }
+  } catch (e) {
+    print('Errore durante l\'aggiornamento dell\'offerta: $e');
+    Fluttertoast.showToast(
+        msg: 'Si è verificato un errore, si prega di riprovare');
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -234,21 +241,32 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
                 keyboardType: TextInputType.number,
               ),
               SizedBox(height: 16),
-              _imageFile == null
+              // Mostra l'immagine corrente o quella predefinita
+              _imageFile == null && widget.imageUrl.endsWith('pizza_foto.png')
                   ? Column(
                       children: [
-                        Image.network(widget.imageUrl,
-                            height: 150), // Mostra l'immagine corrente
+                        Image.asset(
+                          'images/pizza_foto.png',
+                          height: 150,
+                        ),
                         SizedBox(height: 8),
                       ],
                     )
-                  : Column(
-                      children: [
-                        Image.file(_imageFile!,
-                            height: 150), // Mostra l'immagine selezionata
-                        SizedBox(height: 8),
-                      ],
-                    ),
+                  : _imageFile == null
+                      ? Column(
+                          children: [
+                            Image.network(widget.imageUrl,
+                                height: 150), // Mostra l'immagine corrente
+                            SizedBox(height: 8),
+                          ],
+                        )
+                      : Column(
+                          children: [
+                            Image.file(_imageFile!,
+                                height: 150), // Mostra l'immagine selezionata
+                            SizedBox(height: 8),
+                          ],
+                        ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.secondaryColor,
@@ -271,24 +289,26 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
       ),
       actions: [
         Center(
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-          TextButton(
-            onPressed: _isUploading ? null : () => Navigator.of(context).pop(),
-            child: Text(
-              'Annulla',
-              style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                onPressed: _isUploading ? null : () => Navigator.of(context).pop(),
+                child: Text(
+                  'Annulla',
+                  style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
+                ),
+              ),
+              TextButton(
+                onPressed: _isUploading ? null : _updateOffer,
+                child: Text(
+                  'Aggiorna',
+                  style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
+                ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: _isUploading ? null : _updateOffer,
-            child: Text(
-              'Aggiorna',
-              style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
-            ),
-          ),
-        ]))
+        )
       ],
     );
   }

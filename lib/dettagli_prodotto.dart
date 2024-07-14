@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +68,7 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
     _initializeDataFuture = _initializeData();
   }
 
-   @override
+  @override
   void dispose() {
     _internetConnectionSubscription?.cancel();
     super.dispose();
@@ -136,52 +135,52 @@ class _DettagliProdottoState extends State<DettagliProdotto> {
     });
   }
 
-void _showEliminaConfermaDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return StreamBuilder<InternetStatus>(
-        stream: InternetConnection().onStatusChange,
-        builder: (context, snapshot) {
-          if (snapshot.data == InternetStatus.disconnected) {
-            // Chiudi il dialog 
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.of(context).pop();
-              
-            });
-            return Container(); // Ritorna un container vuoto se disconnesso
-          } else {
-            return AlertDialog(
-              title: const Text('Conferma Eliminazione'),
-              content: const Text('Sei sicuro di voler eliminare questo prodotto?'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    'Annulla',
-                    style: TextStyle(color: AppColors.primaryColor),
+  void _showEliminaConfermaDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StreamBuilder<InternetStatus>(
+          stream: InternetConnection().onStatusChange,
+          builder: (context, snapshot) {
+            if (snapshot.data == InternetStatus.disconnected) {
+              // Chiudi il dialog
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.of(context).pop();
+              });
+              return Container(); // Ritorna un container vuoto se disconnesso
+            } else {
+              return AlertDialog(
+                title: const Text('Conferma Eliminazione'),
+                content: const Text('Sei sicuro di voler eliminare questo prodotto?'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      'Annulla',
+                      style: TextStyle(color: AppColors.primaryColor),
+                    ),
                   ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    _eliminaProdotto();
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    'Prosegui',
-                    style: TextStyle(color: AppColors.primaryColor),
+                  TextButton(
+                    onPressed: () {
+                      _eliminaProdotto();
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      'Prosegui',
+                      style: TextStyle(color: AppColors.primaryColor),
+                    ),
                   ),
-                ),
-              ],
-            );
-          }
-        },
-      );
-    },
-  );
-}
+                ],
+              );
+            }
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _eliminaProdotto() async {
     try {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
@@ -313,8 +312,12 @@ void _showEliminaConfermaDialog(BuildContext context) {
                                   width: double.infinity,
                                   fit: BoxFit.contain,
                                   errorBuilder: (context, error, stackTrace) {
-                                    return Icon(Icons.error,
-                                        color: AppColors.primaryColor);
+                                    return Image.asset(
+                                      'images/pizza_foto.png',
+                                      height: 200.0,
+                                      width: double.infinity,
+                                      fit: BoxFit.contain,
+                                    );
                                   },
                                 ),
                               ],
