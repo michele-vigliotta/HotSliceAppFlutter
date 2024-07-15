@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'app_colors.dart';
 import 'package:hot_slice_app/ordine_model.dart';
 import 'package:provider/provider.dart';
@@ -25,8 +28,37 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
   TextEditingController nomeController = TextEditingController();
   TextEditingController telefonoController = TextEditingController();
 
+  bool isConnectedToInternet = true;
+  StreamSubscription? _internetConnectionSubscription;
+
+   @override
+  void initState() {
+    super.initState();
+    _internetConnectionSubscription =
+        InternetConnection().onStatusChange.listen((event) {
+      switch (event) {
+        case InternetStatus.connected:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+        case InternetStatus.disconnected:
+          setState(() {
+            isConnectedToInternet = false;
+          });
+          break;
+        default:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _internetConnectionSubscription?.cancel();
     tavoloController.dispose();
     oraController.dispose();
     nomeController.dispose();
@@ -44,6 +76,13 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // Chiudi il dialogo se non c'è connessione internet
+  if (!isConnectedToInternet) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(context).pop();
+    });
+  }
+
     //accesso al provider
     final carrelloProvider =
         Provider.of<CarrelloProvider>(context, listen: false);

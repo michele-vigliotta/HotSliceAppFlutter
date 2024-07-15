@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hot_slice_app/ordine_dialog.dart';
 import 'package:intl/intl.dart';
 import 'app_colors.dart';
 
@@ -306,170 +306,13 @@ class OrdineCard extends StatelessWidget {
   OrdineCard(
       {required this.ordine, required this.isStaff, required this.aggiorna});
 
-  void _showOrdineDetails(BuildContext context) {
-    int _selectedOrderAction = 0; // 0: Accetta, 1: Rifiuta
-    TimeOfDay? selectedTime;
-    TextEditingController oraController = TextEditingController();
-
+  void _showOrdineDetails(BuildContext context, ItemOrdine ordine) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Gestione Ordine'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Radio<int>(
-                    value: 0,
-                    groupValue: _selectedOrderAction,
-                    activeColor: AppColors.primaryColor,
-                    fillColor: MaterialStateColor.resolveWith(
-                        (states) => AppColors.primaryColor),
-                    onChanged: (value) {
-                      _selectedOrderAction = value!;
-                      // Trigger rebuild of dialog
-                      (context as Element).markNeedsBuild();
-                    },
-                  ),
-                  const Text('Accetta Ordine'),
-                ],
-              ),
-              Row(
-                children: [
-                  Radio<int>(
-                    value: 1,
-                    groupValue: _selectedOrderAction,
-                    activeColor: AppColors.primaryColor,
-                    fillColor: MaterialStateColor.resolveWith(
-                        (states) => AppColors.primaryColor),
-                    onChanged: (value) {
-                      _selectedOrderAction = value!;
-                      // Trigger rebuild of dialog
-                      (context as Element).markNeedsBuild();
-                    },
-                  ),
-                  const Text('Rifiuta Ordine'),
-                ],
-              ),
-              if (_selectedOrderAction == 0 &&
-                  ordine.tipo == "Servizio d'Asporto")
-                TextFormField(
-                  onTap: () async {
-                    selectedTime = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                      builder: (BuildContext context, Widget? child) {
-                        return Theme(
-                            data: ThemeData.light().copyWith(
-                                colorScheme: const ColorScheme.light(
-                                  primary: AppColors
-                                      .primaryColor, // Colore principale del time picker
-                                  onSurface: AppColors
-                                      .secondaryColor, // Colore dei numeri e delle etichette
-                                ),
-                                buttonTheme: const ButtonThemeData(
-                                  colorScheme: ColorScheme.light(
-                                    primary: AppColors
-                                        .primaryColor, // Colore dei bottoni (OK e Cancel)
-                                  ),
-                                ),
-                                timePickerTheme: const TimePickerThemeData(
-                                  dialBackgroundColor:
-                                      Color.fromARGB(255, 241, 241, 241),
-                                )),
-                            child: child!);
-                      },
-                    );
-
-                    if (selectedTime != null) {
-                      oraController.text = selectedTime!.format(context);
-                    }
-                  },
-                  controller: oraController,
-                  decoration: const InputDecoration(
-                    labelText: 'Ora',
-                    labelStyle: TextStyle(color: AppColors.myGrey),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.secondaryColor),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.secondaryColor),
-                    ),
-                  ),
-                  readOnly: true,
-                ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Annulla',
-              style: TextStyle(color: AppColors.primaryColor),),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(
-                'Conferma',
-                style: TextStyle(color: AppColors.primaryColor),
-              ),
-              onPressed: () async {
-                if (_selectedOrderAction == 0) {
-                  //accetta
-                  try {
-                    CollectionReference ordini =
-                        FirebaseFirestore.instance.collection('ordini');
-                    if (ordine.tipo == "Servizio d'Asporto") {
-                      //asporto
-
-                      if (oraController.text == '' ||
-                          oraController.text.isEmpty) {
-                        Fluttertoast.showToast(
-                            msg: "Inserisci l'orario di ritiro");
-                        return null;
-                      }
-
-                      await ordini.doc(ordine.id).update({
-                        'stato': 'Accettato',
-                        'ora': oraController.text,
-                      });
-                    } else {
-                      //tavolo
-                      await ordini.doc(ordine.id).update({
-                        'stato': 'Accettato',
-                      });
-                    }
-                    aggiorna();
-
-                    Fluttertoast.showToast(msg: "Ordine Accettato");
-                  } catch (e) {
-                    Fluttertoast.showToast(
-                        msg: "Errore durante l'iserimento, riprovare");
-                  }
-                } else {
-                  //rifiuta
-                  try {
-                    CollectionReference ordini =
-                        FirebaseFirestore.instance.collection('ordini');
-
-                    await ordini.doc(ordine.id).update({
-                      'stato': 'Rifiutato',
-                    });
-                    aggiorna();
-                    Fluttertoast.showToast(msg: "Ordine Rifiutato");
-                  } catch (e) {
-                    Fluttertoast.showToast(
-                        msg: "Errore durante l'iserimento, riprovare");
-                  }
-                }
-
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+        return OrdineDialog(
+          ordine: ordine,
+          aggiorna: aggiorna,
         );
       },
     );
@@ -480,7 +323,7 @@ class OrdineCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (isStaff) {
-          _showOrdineDetails(context);
+          _showOrdineDetails(context, ordine);
         }
       },
       child: Card(

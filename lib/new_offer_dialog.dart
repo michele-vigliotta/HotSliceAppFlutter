@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -5,6 +6,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hot_slice_app/app_colors.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class NewOfferDialog extends StatefulWidget {
   final Function onOfferAdded;
@@ -26,9 +29,43 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
 
   File? _imageFile;
   bool _isUploading = false;
-  String? _uploadedImageUrl;
+  String? _fileName; // Variabile per memorizzare il nome del file
+
+  bool isConnectedToInternet = true;
+  StreamSubscription? _internetConnectionSubscription;
 
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _internetConnectionSubscription =
+        InternetConnection().onStatusChange.listen((event) {
+      switch (event) {
+        case InternetStatus.connected:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+        case InternetStatus.disconnected:
+          setState(() {
+            isConnectedToInternet = false;
+          });
+          break;
+        default:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _internetConnectionSubscription?.cancel();
+    super.dispose();
+  }
 
   Future<void> _pickImage() async {
     final pickedFile =
@@ -37,6 +74,7 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
+        _fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg'; // Imposta il nome del file senza prefisso
       });
       await _uploadImage(); // Carica l'immagine subito dopo averla selezionata
     }
@@ -50,15 +88,13 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
     });
 
     try {
-      String fileName = 'images/${DateTime.now().millisecondsSinceEpoch}.jpg';
       UploadTask uploadTask =
-          FirebaseStorage.instance.ref(fileName).putFile(_imageFile!);
+          FirebaseStorage.instance.ref('$_fileName').putFile(_imageFile!); // Aggiungi il prefisso solo per l'upload
 
       TaskSnapshot snapshot = await uploadTask;
-      String downloadUrl = await snapshot.ref.getDownloadURL();
+      await snapshot.ref.getDownloadURL(); // Ottiene l'URL di download ma non lo salva
 
       setState(() {
-        _uploadedImageUrl = downloadUrl;
         _isUploading = false;
       });
       Fluttertoast.showToast(msg: 'Immagine caricata con successo');
@@ -66,50 +102,62 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
       setState(() {
         _isUploading = false;
       });
-      Fluttertoast.showToast(msg: 'Immagine caricata con successo');
+      Fluttertoast.showToast(msg: 'Errore nel caricamento dell\'immagine');
     }
   }
 
   Future<void> _addOffer() async {
-  if (!_formKey.currentState!.validate()) {
-    return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_imageFile == null) {
+      Fluttertoast.showToast(msg: 'Inserire una foto e attendere');
+      return;
+    }
+
+    String nome = _nomeController.text;
+    String descrizione = _descrizioneController.text;
+    String prezzo = _prezzoController.text;
+
+    double prezzoNum = double.parse(prezzo);
+
+    // Check if offer with the same name already exists
+    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+        .collection('offerte')
+        .doc(nome)
+        .get();
+
+    if (documentSnapshot.exists) {
+      // Offer with the same name already exists
+      Fluttertoast.showToast(msg: 'Offerta già esistente');
+      return;
+    }
+
+    // Proceed to add the new offer
+    Map<String, dynamic> newOffer = {
+      'nome': nome,
+      'prezzo': prezzoNum,
+      'descrizione': descrizione,
+      'foto': _fileName, // Usa il nome del file senza prefisso
+    };
+
+    await FirebaseFirestore.instance.collection('offerte').doc(nome).set(newOffer);
+
+    widget.onOfferAdded();
+
+    Navigator.of(context).pop();
   }
-
-  String nome = _nomeController.text;
-  String descrizione = _descrizioneController.text;
-  String prezzo = _prezzoController.text;
-
-  double prezzoNum = double.parse(prezzo);
-
-  // Check if offer with the same name already exists
-  QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-      .collection('offerte')
-      .where('nome', isEqualTo: nome)
-      .get();
-
-  if (querySnapshot.docs.isNotEmpty) {
-    // Offer with the same name already exists
-    Fluttertoast.showToast(msg: 'Offerta già esistente');
-    return;
-  }
-
-  // Proceed to add the new offer
-  Map<String, dynamic> newOffer = {
-    'nome': nome,
-    'prezzo': prezzoNum,
-    'descrizione': descrizione,
-    'foto': _uploadedImageUrl,
-  };
-
-  await FirebaseFirestore.instance.collection('offerte').add(newOffer);
-
-  widget.onOfferAdded();
-
-  Navigator.of(context).pop();
-}
 
   @override
   Widget build(BuildContext context) {
+    // Chiudi il dialogo se non c'è connessione internet
+  if (!isConnectedToInternet) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(context).pop();
+    });
+  }
+
     return AlertDialog(
       title: Center(
         child: Text(
@@ -126,14 +174,16 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
               TextFormField(
                 controller: _nomeController,
                 focusNode: _nomeFocusNode,
-                decoration: InputDecoration(labelText: 'Nome',
-                labelStyle: TextStyle(color: AppColors.myGrey),
+                decoration: InputDecoration(
+                  labelText: 'Nome',
+                  labelStyle: TextStyle(color: AppColors.myGrey),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.secondaryColor),
                   ),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.secondaryColor),
-                  ),),
+                  ),
+                ),
                 textInputAction: TextInputAction.next,
                 onFieldSubmitted: (_) {
                   FocusScope.of(context).requestFocus(_descrizioneFocusNode);
@@ -146,26 +196,29 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
                 },
               ),
               TextFormField(
-                  controller: _descrizioneController,
-                  focusNode: _descrizioneFocusNode,
-                  decoration: InputDecoration(labelText: 'Descrizione',
+                controller: _descrizioneController,
+                focusNode: _descrizioneFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Descrizione',
                   labelStyle: TextStyle(color: AppColors.myGrey),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.secondaryColor),
                   ),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.secondaryColor),
-                  ),),
-                  textInputAction: TextInputAction.next,
-                  onFieldSubmitted: (_) {
-                    FocusScope.of(context).requestFocus(_prezzoFocusNode);
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Inserisci una descrizione';
-                    }
-                    return null;
-                  }),
+                  ),
+                ),
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_prezzoFocusNode);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Inserisci una descrizione';
+                  }
+                  return null;
+                },
+              ),
               TextFormField(
                 controller: _prezzoController,
                 focusNode: _prezzoFocusNode,
@@ -175,21 +228,22 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
                   }
                   return null;
                 },
-                decoration: InputDecoration(labelText: 'Prezzo',
-                labelStyle: TextStyle(color: AppColors.myGrey),
+                decoration: InputDecoration(
+                  labelText: 'Prezzo',
+                  labelStyle: TextStyle(color: AppColors.myGrey),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.secondaryColor),
                   ),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.secondaryColor),
-                  ),),
+                  ),
+                ),
                 textInputAction: TextInputAction.done,
                 keyboardType: TextInputType.number,
               ),
               SizedBox(height: 16),
               _imageFile == null
-                  ? Text('Nessuna immagine selezionata'
-                  )
+                  ? Text('Nessuna immagine selezionata')
                   : Image.file(_imageFile!, height: 150),
               SizedBox(height: 8),
               ElevatedButton(
@@ -197,19 +251,26 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
                   backgroundColor: AppColors.secondaryColor,
                 ),
                 onPressed: _isUploading ? null : _pickImage,
-                child: Text('Seleziona Immagine',
-                style: TextStyle(color: Colors.black)),
+                child: Text(
+                  'Seleziona Immagine',
+                  style: TextStyle(color: Colors.black),
+                ),
               ),
-              _isUploading ? CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-              ) : SizedBox.shrink(),
+              _isUploading
+                  ? CircularProgressIndicator(
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                    )
+                  : SizedBox.shrink(),
             ],
           ),
         ),
       ),
       actions: [
         Center(
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
           TextButton(
             onPressed: _isUploading ? null : () => Navigator.of(context).pop(),
             child: Text(
@@ -220,7 +281,7 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
           TextButton(
             onPressed: _isUploading ? null : _addOffer,
             child: Text(
-              'Aggiorna',
+              'Aggiungi',
               style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
             ),
           ),

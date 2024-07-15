@@ -71,6 +71,7 @@ class CarrelloProvider extends ChangeNotifier{
     for (CarrelloModel prodotto in _listaCarrello){
       descrizione += "Nome: ${prodotto.name}, Quantità: ${prodotto.quantity};\n";
     }
+    
     int timestamp = DateTime.now().millisecondsSinceEpoch;
     
 
@@ -86,7 +87,7 @@ class CarrelloProvider extends ChangeNotifier{
         'telefono': nuovoOrdine.telefono,
         'tipo': nuovoOrdine.tipo,
         'totale': calcolaTotale().toStringAsFixed(2),
-        'userId': user?.uid,
+        'userId': user.uid,
       };
 
       CollectionReference ordini = FirebaseFirestore.instance.collection('ordini');

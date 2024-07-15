@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -5,6 +7,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hot_slice_app/app_colors.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class ModificaOffertaDialog extends StatefulWidget {
   final String nome;
@@ -37,15 +41,45 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
   File? _imageFile;
   bool _isUploading = false;
   String? _uploadedImageUrl;
+  String? fileName;
+
+  bool isConnectedToInternet = true;
+  StreamSubscription? _internetConnectionSubscription;
 
   final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
+    _internetConnectionSubscription =
+        InternetConnection().onStatusChange.listen((event) {
+      switch (event) {
+        case InternetStatus.connected:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+        case InternetStatus.disconnected:
+          setState(() {
+            isConnectedToInternet = false;
+          });
+          break;
+        default:
+          setState(() {
+            isConnectedToInternet = true;
+          });
+          break;
+      }
+    });
     _nomeController.text = widget.nome;
     _descrizioneController.text = widget.descrizione;
     _prezzoController.text = widget.prezzo.toString();
+  }
+
+   @override
+  void dispose() {
+    _internetConnectionSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _pickImage() async {
@@ -68,9 +102,9 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
     });
 
     try {
-      String fileName = 'images/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       UploadTask uploadTask =
-          FirebaseStorage.instance.ref(fileName).putFile(_imageFile!);
+          FirebaseStorage.instance.ref('$fileName').putFile(_imageFile!);
 
       TaskSnapshot snapshot = await uploadTask;
       String downloadUrl = await snapshot.ref.getDownloadURL();
@@ -105,7 +139,8 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
       'nome': nome,
       'prezzo': prezzoNum,
       'descrizione': descrizione,
-      'foto': _uploadedImageUrl ?? widget.imageUrl, // Usa l'immagine caricata o quella esistente
+      'foto': fileName ??
+          widget.imageUrl.split('?').first.split('/').last, // Usa l'immagine caricata o quella esistente
     };
 
     try {
@@ -124,7 +159,6 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
 
         widget.onOfferEdited();
         Navigator.of(context).pop();
-        Fluttertoast.showToast(msg: 'Offerta aggiornata con successo');
       }
     } catch (e) {
       print('Errore durante l\'aggiornamento dell\'offerta: $e');
@@ -135,6 +169,13 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // Chiudi il dialogo se non c'è connessione internet
+  if (!isConnectedToInternet) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(context).pop();
+    });
+  }
+
     return AlertDialog(
       title: Center(
         child: Text(
