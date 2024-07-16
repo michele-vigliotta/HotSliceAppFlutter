@@ -129,13 +129,9 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
       return;
     }
 
-
-
     String nome = _nomeController.text;
     String descrizione = _descrizioneController.text;
     String prezzo = _prezzoController.text;
-
-    
 
     double prezzoNum = double.parse(prezzo);
 
@@ -211,15 +207,15 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
                   ),
                 ),
                 textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) {
-                        FocusScope.of(context).requestFocus(_prezzoFocusNode);
-                      },
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_prezzoFocusNode);
+                },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                            return 'Inserisci una descrizione';
-                }
-                return null;
-                }
+                    return 'Inserisci una descrizione';
+                  }
+                  return null;
+                },
               ),
               TextFormField(
                 controller: _prezzoController,
@@ -237,9 +233,9 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
                 textInputAction: TextInputAction.done,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                            return 'Inserisci un prezzo';
-                }
-                return null;
+                    return 'Inserisci un prezzo';
+                  }
+                  return null;
                 },
                 keyboardType: TextInputType.number,
               ),
@@ -247,15 +243,13 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
               _imageFile == null
                   ? Column(
                       children: [
-                        Image.network(widget.imageUrl,
-                            height: 150), // Mostra l'immagine corrente
+                        Image.network(widget.imageUrl, height: 150), // Mostra l'immagine corrente
                         SizedBox(height: 8),
                       ],
                     )
                   : Column(
                       children: [
-                        Image.file(_imageFile!,
-                            height: 150), // Mostra l'immagine selezionata
+                        Image.file(_imageFile!, height: 150), // Mostra l'immagine selezionata
                         SizedBox(height: 8),
                       ],
                     ),
@@ -269,31 +263,37 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
                   style: TextStyle(color: Colors.black),
                 ),
               ),
-              _isUploading ? CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-              ) : SizedBox.shrink(),
+              _isUploading
+                  ? CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                    )
+                  : SizedBox.shrink(),
             ],
           ),
         ),
       ),
       actions: [
         Center(
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          TextButton(
-            onPressed: _isUploading ? null : () => Navigator.of(context).pop(),
-            child: Text(
-              'Annulla',
-              style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                onPressed: _isUploading ? null : () => Navigator.of(context).pop(),
+                child: Text(
+                  'Annulla',
+                  style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
+                ),
+              ),
+              TextButton(
+                onPressed: _isUploading ? null : _updateOffer,
+                child: Text(
+                  'Aggiorna',
+                  style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
+                ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: _isUploading ? null : _updateOffer,
-            child: Text(
-              'Aggiorna',
-              style: TextStyle(color: AppColors.primaryColor, fontSize: 18.0),
-            ),
-          ),
-        ]))
+        )
       ],
     );
   }
