@@ -31,7 +31,7 @@ class _OrdineDialogState extends State<OrdineDialog> {
   StreamSubscription? _internetConnectionSubscription;
 
   Stream<InternetStatus> internetStatusStream =
-      InternetConnection().onStatusChange; //per il timepicker
+      InternetConnection().onStatusChange; //  Per il timepicker
 
    @override
   void initState() {
@@ -66,7 +66,7 @@ class _OrdineDialogState extends State<OrdineDialog> {
 
   @override
   Widget build(BuildContext context) {
-       // Chiudi il dialogo se non c'è connessione internet
+       // Chiudi il dialog se non c'è connessione internet
   if (!isConnectedToInternet) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Navigator.of(context).pop();

@@ -90,7 +90,7 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
       setState(() {
         _imageFile = File(pickedFile.path);
       });
-      await _uploadImage(); // Carica l'immagine subito dopo averla selezionata
+      await _uploadImage(); //Carica l'immagine subito dopo averla selezionata
     }
   }
 
@@ -120,7 +120,7 @@ class _ModificaOffertaDialogState extends State<ModificaOffertaDialog> {
         _isUploading = false;
       });
 
-      Fluttertoast.showToast(msg:'Errore durante il caricamneto dell\'immagine');
+      Fluttertoast.showToast(msg:'Errore durante il caricamento dell\'immagine');
     }
   }
 

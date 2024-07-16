@@ -122,19 +122,18 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
 
     double prezzoNum = double.parse(prezzo);
 
-    // Check if offer with the same name already exists
+    // Controlla se esiste un'offerta con lo stesso nome
     DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
         .collection('offerte')
         .doc(nome)
         .get();
 
     if (documentSnapshot.exists) {
-      // Offer with the same name already exists
       Fluttertoast.showToast(msg: 'Offerta già esistente');
       return;
     }
 
-    // Proceed to add the new offer
+    // Aggiunge nuova offerta
     Map<String, dynamic> newOffer = {
       'nome': nome,
       'prezzo': prezzoNum,
@@ -151,7 +150,7 @@ class _NewOfferDialogState extends State<NewOfferDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // Chiudi il dialogo se non c'è connessione internet
+    // Chiudi il dialog se non c'è connessione internet
   if (!isConnectedToInternet) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Navigator.of(context).pop();

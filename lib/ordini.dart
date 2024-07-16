@@ -65,10 +65,9 @@ class _OrdiniState extends State<Ordini> {
       if (data != null && data.containsKey('data')) {
         String dateString = data['data'];
         DateTime dataOrdine =
-            DateTime.parse(dateString); // Converti la stringa in DateTime
+            DateTime.parse(dateString); // Converte la stringa in DateTime
         return ItemOrdine.fromDocument(doc, dataOrdine: dataOrdine);
       } else {
-        // Handle the case where 'data' is missing or null
         throw Exception(
             "Missing or invalid 'data' field in Firestore document");
       }
@@ -114,7 +113,7 @@ class _OrdiniState extends State<Ordini> {
         ordiniList = _loadOrdini(currentUser.uid);
       }
     }
-    setState(() {}); // Trigger rebuild to refresh the UI
+    setState(() {});
   }
 
   @override

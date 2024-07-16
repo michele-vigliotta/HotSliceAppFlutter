@@ -116,7 +116,7 @@ class _OfferteState extends State<Offerte> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => FutureBuilder<String>(
-                                  future: offer.imageUrl, // Utilizza il Future<String> qui
+                                  future: offer.imageUrl,
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState ==
                                         ConnectionState.waiting) {
@@ -133,7 +133,6 @@ class _OfferteState extends State<Offerte> {
                                             'Errore durante il caricamento dell\'immagine.'),
                                       );
                                     } else {
-                                      // Quando il futuro è risolto, navighiamo a DettagliProdotto
                                       return DettagliProdotto(
                                         nome: offer.nome,
                                         prezzo: offer.prezzo,

@@ -150,19 +150,19 @@ class _MainPageState extends State<MainPage> {
             ) // Mostra un indicatore di caricamento finché il ruolo non è caricato
           : _pages[_selectedIndex], // Mostra la pagina corrente
       bottomNavigationBar: isLoading
-          ? SizedBox() // Mostra una BottomNavigationBar vuota finché il ruolo non è caricato
+          ? SizedBox()
           : BottomNavigationBar(
-              type: BottomNavigationBarType.fixed, // Le icone non si muovono
+              type: BottomNavigationBarType.fixed,
               showSelectedLabels:
-                  false, // Nasconde le etichette delle icone selezionate
+                  false, 
               showUnselectedLabels:
-                  false, // Nasconde le etichette delle icone non selezionate
-              currentIndex: _selectedIndex, // Imposta l'indice corrente
+                  false, 
+              currentIndex: _selectedIndex,
               backgroundColor: AppColors
                   .primaryColor, // Colore di sfondo della BottomNavigationBar
               selectedItemColor: Colors.white, // Colore delle icone selezionate
               unselectedItemColor:
-                  Colors.black54, // Colore delle icone non selezionate
+                  Colors.black54, 
               onTap: _onItemTapped, // Callback per il tap
               items: _bottomNavBarItems,
             ),

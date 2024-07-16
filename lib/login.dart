@@ -147,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     Widget LoginScaffold = Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(0.0), // Altezza personalizzata della AppBar
+        preferredSize: const Size.fromHeight(0.0), // Altezza AppBar modificata
         child: AppBar(
           backgroundColor: AppColors.primaryColor,
         ),

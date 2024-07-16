@@ -44,8 +44,7 @@ class MyApp extends StatelessWidget {
           AuthWrapper(), //determina la schermata iniziale in base allo stato di autenticazione dell'utente
       routes: {
         '/login': (context) => LoginPage(),
-        '/container': (context) =>
-            MainPage(), // Aggiorna con la tua route per la MainPage
+        '/container': (context) =>MainPage(), // Aggiorna con la route per la MainPage
         '/register': (context) => RegisterPage(),
         '/offerte': (context) => Offerte(),
       },
