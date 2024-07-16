@@ -53,7 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
-   @override
+  @override
   void dispose() {
     _internetConnectionSubscription?.cancel();
     super.dispose();
@@ -125,6 +125,12 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     Widget LoginScaffold = Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(0.0), // Altezza AppBar modificata
+        child: AppBar(
+          backgroundColor: AppColors.primaryColor,
+        ),
+      ),
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(16.0),
@@ -143,7 +149,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 80.0),
               Image.asset(
-                'images/pizzalogin.png', 
+                'images/pizzalogin.png',
                 height: 186.0,
                 width: 234.0,
                 fit: BoxFit.contain,
@@ -217,7 +223,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       obscureText: true,
                       textInputAction: TextInputAction.next,
                       onFieldSubmitted: (_) {
-                        FocusScope.of(context).requestFocus(_confirmPasswordFocusNode);
+                        FocusScope.of(context)
+                            .requestFocus(_confirmPasswordFocusNode);
                       },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
