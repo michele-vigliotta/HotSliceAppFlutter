@@ -20,7 +20,7 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
   String _servizioSelezionato = '';
   bool _mostraCampi = false;
   final _formKey = GlobalKey<FormState>(); // GlobalKey per la Form
-  var initialTime;
+  TimeOfDay? initialTime;
   TimeOfDay? selectedTime;
 
   TextEditingController tavoloController = TextEditingController();
@@ -31,7 +31,7 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
   bool isConnectedToInternet = true;
   StreamSubscription? _internetConnectionSubscription;
 
-   @override
+  @override
   void initState() {
     super.initState();
     _internetConnectionSubscription =
@@ -77,19 +77,19 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
   @override
   Widget build(BuildContext context) {
     // Chiudi il dialogo se non c'è connessione internet
-  if (!isConnectedToInternet) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.of(context).pop();
-    });
-  }
+    if (!isConnectedToInternet) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pop();
+      });
+    }
 
-    //accesso al provider
+    // Accesso al provider
     final carrelloProvider =
         Provider.of<CarrelloProvider>(context, listen: false);
 
     return AlertDialog(
       title: const Text(
-        'Scegli la modalitá di ritiro',
+        'Scegli la modalità di ritiro',
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
@@ -151,12 +151,12 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
         ),
         TextButton(
           onPressed: () {
-            // validatore per i radio button
+            // Validatore per i radio button
             if (_servizioSelezionato.isEmpty) {
               Fluttertoast.showToast(msg: 'Seleziona una modalità di ritiro');
               return;
             }
-            // Se la form é valida
+            // Se la form è valida
             if (_formKey.currentState!.validate()) {
               String numeroTavolo = tavoloController.text;
               String oraRitiro = oraController.text;
@@ -238,40 +238,39 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
             onTap: () async {
               FocusScope.of(context).requestFocus(FocusNode());
 
-              //In questo modo il time picker parte da 30 min dopo l'ora corrente se sono passate le 19
+              // Inizializza il time picker a 30 minuti dopo l'ora corrente
               final now = DateTime.now();
-
               final in30Minutes = now.add(Duration(minutes: 30));
-              initialTime =
-                  TimeOfDay(hour: in30Minutes.hour, minute: in30Minutes.minute);
+              initialTime = TimeOfDay(hour: in30Minutes.hour, minute: in30Minutes.minute);
 
               selectedTime = await showTimePicker(
-                initialTime: initialTime,
+                initialTime: initialTime!,
                 context: context,
                 builder: (BuildContext context, Widget? child) {
                   return Theme(
-                      data: ThemeData.light().copyWith(
-                          colorScheme: const ColorScheme.light(
-                            primary: AppColors
-                                .primaryColor, // Colore principale del time picker
-                            onSurface: AppColors
-                                .secondaryColor, // Colore dei numeri e delle etichette
-                          ),
-                          buttonTheme: const ButtonThemeData(
-                            colorScheme: ColorScheme.light(
-                              primary: AppColors
-                                  .primaryColor, // Colore dei bottoni (OK e Cancel)
-                            ),
-                          ),
-                          timePickerTheme: const TimePickerThemeData(
-                            dialBackgroundColor:
-                                Color.fromARGB(255, 241, 241, 241),
-                          )),
-                      child: child!);
+                    data: ThemeData.light().copyWith(
+                      colorScheme: const ColorScheme.light(
+                        primary: AppColors.primaryColor,
+                        onSurface: AppColors.secondaryColor,
+                      ),
+                      buttonTheme: const ButtonThemeData(
+                        colorScheme: ColorScheme.light(
+                          primary: AppColors.primaryColor,
+                        ),
+                      ),
+                      timePickerTheme: const TimePickerThemeData(
+                        dialBackgroundColor: Color.fromARGB(255, 241, 241, 241),
+                      ),
+                    ),
+                    child: child!,
+                  );
                 },
               );
+
               if (selectedTime != null) {
                 oraController.text = selectedTime!.format(context);
+                // Trigger validation after selecting time
+                _formKey.currentState?.validate();
               }
             },
             controller: oraController,
@@ -289,9 +288,25 @@ class _CreaOrdineDialogState extends State<CreaOrdineDialog> {
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return "Inserisci l'orario di ritiro";
-              } else if (!(selectedTime!.hour >= initialTime.hour &&
-                  selectedTime!.hour <= 23)) {
-                return "Seleziona un orario tra le 19:00 e le 24:00,\nalmeno 30 minuti da ora";
+              }
+              if (selectedTime == null) {
+                return "Seleziona un orario valido";
+              }
+              final now = DateTime.now();
+              final in30Minutes = now.add(Duration(minutes: 30));
+              final selectedDateTime = DateTime(
+                now.year,
+                now.month,
+                now.day,
+                selectedTime!.hour,
+                selectedTime!.minute,
+              );
+
+              if (selectedDateTime.isBefore(in30Minutes)) {
+                return "Seleziona un orario almeno 30 minuti da ora";
+              }
+              if (selectedDateTime.hour < 19) {
+                return "Seleziona un orario tra le 19:00 e le 24:00";
               }
               return null;
             },
