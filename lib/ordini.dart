@@ -296,6 +296,36 @@ class ItemOrdine {
     DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm');
     return formatter.format(dataOrdine); // Cambiato da 'dataOrdine' a 'data'
   }
+
+  String get formattedDescrizione {
+    List<String> items = descrizione.split(';');
+    List<String> formattedItems = items.map((item) {
+      List<String> nameQuantityParts = item.trim().split(',');
+      String? nome;
+      String? quantita;
+
+      for (String part in nameQuantityParts) {
+        List<String> keyValue = part.trim().split(':');
+        if (keyValue.length == 2) {
+          String key = keyValue[0].trim().toLowerCase();
+          String value = keyValue[1].trim();
+          if (key == 'nome') {
+            nome = value;
+          } else if (key == 'quantità') {
+            quantita = value;
+          }
+        }
+      }
+
+      if (nome != null && quantita != null) {
+        return '${quantita}x ${nome}';
+      } else {
+        return '';
+      }
+    }).where((element) => element.isNotEmpty).toList();
+
+    return formattedItems.join(', ');
+  }
 }
 
 class OrdineCard extends StatelessWidget {
@@ -348,7 +378,7 @@ class OrdineCard extends StatelessWidget {
               ),
               const SizedBox(height: 24.0),
               Text(
-                'Descrizione: ${ordine.descrizione}',
+                'Descrizione: ${ordine.formattedDescrizione}',
                 style: const TextStyle(
                   fontSize: 18.0,
                   color: Colors.black,
