@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:hot_slice_app/crea_ordine_dialog.dart';
 import 'package:provider/provider.dart';
 import 'carrello_model.dart';
